@@ -27,3 +27,4 @@ playwright-report/
 .ruff_cache/
 
 *.md
+!README.md
