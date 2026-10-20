@@ -2,13 +2,11 @@
 
 Legend Zone is a bot battle platform. Upload a Python or C++ program to compete against other bots and earn Elo ratings, play against bots yourself, or watch match replays.
 
-The interface and this README are in English. Other development and maintenance documentation is in Simplified Chinese.
-
 ## Features
 
 - Six competitive games: Gomoku, Tic Tac Toe, Connect Four, Snake, Mini Snake, and Tank Battle. All game judges are implemented in Python.
 - Single-file and ZIP bot uploads, immutable versions, private source code, and authorized downloads. Upload requests are limited to 16 MiB.
-- Bot battles, human vs. bot matches, two-player matches on the same device, and automatic ladder matches. Selecting an older bot version disables rating changes for both players.
+- Bot battles, human vs. bot matches, two-player matches, and automatic ladder matches. Selecting an older bot version disables rating changes for both players.
 - Live spectating, shared replay controls, and a public Debug panel showing bot input, output, and stderr for each turn.
 - Bot labels colored continuously by the latest version's rating, leaderboards, rating history, user profiles, and recent matches for each bot.
 

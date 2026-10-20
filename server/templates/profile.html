@@ -52,6 +52,8 @@
           {% if is_owner %}
             <button type="button" id="btn-create-bot"
                     class="profile-button primary">Create Bot</button>
+            <button type="button" id="btn-account-settings" class="profile-button"
+                    aria-haspopup="dialog" aria-controls="account-settings-modal">Account Settings</button>
           {% endif %}
         </div>
       </div>
@@ -157,6 +159,36 @@
 
 <!-- Create Bot modal -->
 {% if is_owner %}
+<div id="account-settings-modal" class="profile-modal hidden" role="dialog" aria-modal="true" aria-labelledby="account-settings-title" tabindex="-1">
+  <div class="profile-modal-card">
+    <button class="profile-modal-close" id="account-settings-close" type="button" aria-label="Close account settings">
+      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <h2 id="account-settings-title" class="profile-modal-title">Account Settings</h2>
+    <form id="account-password-form" class="space-y-5">
+      <div>
+        <label for="current-password" class="block text-sm font-medium text-gray-700">Current Password</label>
+        <input id="current-password" name="current_password" class="profile-field" type="password" autocomplete="current-password" required maxlength="256">
+      </div>
+      <div>
+        <label for="new-password" class="block text-sm font-medium text-gray-700">New Password</label>
+        <input id="new-password" name="new_password" class="profile-field" type="password" autocomplete="new-password" required minlength="8" maxlength="256" aria-describedby="account-password-hint">
+        <p id="account-password-hint" class="text-sm text-gray-500 mt-2">Use at least 8 characters.</p>
+      </div>
+      <div>
+        <label for="confirm-new-password" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
+        <input id="confirm-new-password" name="confirm_password" class="profile-field" type="password" autocomplete="new-password" required minlength="8" maxlength="256">
+      </div>
+      <p id="account-password-feedback" class="profile-account-feedback" role="status" aria-live="polite" hidden></p>
+      <div class="flex justify-end space-x-3">
+        <button type="button" id="account-settings-cancel" class="profile-button">Cancel</button>
+        <button type="submit" id="account-password-save" class="profile-button primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
 <div id="uploadModal" class="profile-modal hidden" role="dialog" aria-modal="true" aria-labelledby="upload-title">
   <div class="profile-modal-card upload">
     <button class="profile-modal-close" id="upload-close" type="button" aria-label="Close create bot dialog">
@@ -335,4 +367,7 @@
     });
   })();
 </script>
+{% if is_owner %}
+<script src="{{ url_for('static', filename='profile-account.js') }}" defer></script>
+{% endif %}
 {% endblock %}

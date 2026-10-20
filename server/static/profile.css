@@ -46,6 +46,8 @@
 .profile-modal-close:hover { color: #475569; background: #f1f5f9; }
 .profile-field { display: block; width: 100%; margin-top: 0.4rem; padding: 0.6rem 0.7rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; background: #f8fafc; color: #334155; font-size: 0.85rem; }
 .profile-field:focus { outline: 2px solid #bfdbfe; border-color: #60a5fa; background: #fff; }
+.profile-account-feedback { color: #0f766e; font-size: .85rem; line-height: 1.5; }
+.profile-account-feedback[data-error="true"] { color: #b91c1c; }
 #sourceCode.profile-field { font-family: ui-monospace,monospace; font-size: 0.75rem; }
 .profile-field::file-selector-button { padding: 0.3rem 0.5rem; margin-right: 0.6rem; border: 0; border-radius: 0.3rem; color: #475569; background: #e2e8f0; font-size: 0.75rem; }
 .profile-button:focus-visible, .profile-icon-button:focus-visible, .profile-modal-close:focus-visible { outline: 2px solid #93c5fd; outline-offset: 3px; }

@@ -2,11 +2,11 @@ import re
 import time
 from threading import Lock
 
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from .security import COOKIE, current_user, set_session
+from .security import COOKIE, current_user, require_user, set_session
 
 router = APIRouter(prefix="/api")
 
@@ -90,3 +90,39 @@ def authenticate(
 def logout(response: Response):
     response.delete_cookie(COOKIE, path="/")
     return {"ok": True}
+
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=1, max_length=256)
+    new_password: str = Field(min_length=8, max_length=256)
+    confirm_password: str = Field(min_length=8, max_length=256)
+
+
+@router.post("/account/password")
+def change_password(body: PasswordChange, request: Request, user=Depends(require_user)):
+    request.app.state.attempts.check(request)
+    if body.new_password != body.confirm_password:
+        raise HTTPException(400, "New passwords do not match.")
+    db = request.app.state.db
+    account = db.one("SELECT password_hash FROM users WHERE id=?", (user["id"],))
+    try:
+        valid = bool(
+            account
+            and check_password_hash(account["password_hash"], body.current_password)
+        )
+    except (ValueError, TypeError):
+        valid = False
+    if not valid:
+        raise HTTPException(400, "Current password is incorrect.")
+    hashed = generate_password_hash(body.new_password)
+    with db.connect(write=True) as conn:
+        updated = conn.execute(
+            "UPDATE users SET password_hash=? WHERE id=? AND password_hash=?",
+            (hashed, user["id"], account["password_hash"]),
+        )
+        if updated.rowcount != 1:
+            raise HTTPException(
+                409,
+                "Your password has changed. Please try again with your current password.",
+            )
+    return {"message": "Password updated successfully."}
