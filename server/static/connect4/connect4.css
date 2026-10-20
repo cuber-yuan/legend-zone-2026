@@ -1,0 +1,21 @@
+.c4-page { max-width: 1000px; margin: 2rem auto; }
+.c4-arena {
+  width: 100%; margin: auto; overflow: hidden; border: 1px solid #e2e8f0;
+  border-radius: 1.25rem; background: #fff; box-shadow: 0 16px 45px rgba(15, 23, 42, 0.08);
+}
+.c4-stage { padding: 0 0.75rem; background: radial-gradient(ellipse at 50% 85%, #e2e8f0, #f8fafc 65%, #fff); }
+#phaser-container { width: 100%; aspect-ratio: 640 / 640; }
+#phaser-container canvas { display: block; max-width: 100%; border: 0; margin: 0; background: transparent; }
+.c4-columns { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.3rem; padding: 0 6.25%; margin-top: -0.65rem; position: relative; }
+.c4-columns button { width: 2rem; height: 2rem; justify-self: center; border: 1px solid transparent; border-radius: 50%; color: #64748b; background: transparent; font: 600 0.65rem ui-monospace, monospace; cursor: pointer; }
+.c4-columns button:hover:not(:disabled), .c4-columns button:focus-visible { color: #2563eb; border-color: #bfdbfe; background: #eff6ff; outline: none; }
+.c4-columns button:disabled { opacity: 0.5; cursor: default; }
+.c4-result { display: none; width: 100%; padding: 0.85rem 1rem; margin-bottom: 0.7rem; border: 1px solid #dbeafe; border-radius: 0.75rem; background: #f8fafc; }
+.c4-result.visible { display: block; }
+.c4-result strong { display: block; color: #172b47; font-size: 1.15rem; letter-spacing: -0.02em; }
+.c4-result span { display: block; color: #64748b; font-size: 0.75rem; margin-top: 0.2rem; }
+.c4-result span[hidden] { display: none; }
+@media (max-width: 600px) {
+  .c4-page { margin-top: 1rem; }
+  .c4-stage { padding: 0 0.25rem; }
+}

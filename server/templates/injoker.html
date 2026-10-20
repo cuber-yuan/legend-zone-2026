@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}Injoker{% endblock %}
+
+{% block content %}
+<div class="max-w-screen-lg mx-auto mt-8">
+    <h1 class="text-3xl font-bold text-center mb-6">Injoker</h1>
+    <p class="text-center text-gray-700 mb-8">
+        Master the art of playing Invoker in Dota 2! Practice quick spell combinations, unleash devastating abilities. Hone your skills to become the true Invoker, not an "Injoker".
+    </p>
+    <div id="phaser-container" style="width: 800px; height: 600px; margin: 0 auto;"></div>
+    <!-- Add the spells.png image below the canvas -->
+    <div class="text-center mt-6">
+        <img src="/static/injoker/spells.png" alt="Spells" style="max-width: 100%; height: auto; margin: 0 auto; display: block;">
+    </div>
+</div>
+
+<script src="/static/vendor/phaser.js"></script>
+<script>
+    const config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        parent: 'phaser-container',
+        backgroundColor: '#1e293b',
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    const game = new Phaser.Game(config);
+
+    let queue = []; // Queue to store images
+    const positions = [
+        { x: 350, y: 420 }, // Left
+        { x: 400, y: 420 }, // Middle
+        { x: 450, y: 420 }  // Right
+    ];
+
+    const bottomPositions = [
+        { x: 150, y: 520 }, // Bottom-left
+        { x: 250, y: 520 }, // Bottom-center-left
+        { x: 350, y: 520 }, // Bottom-center
+        { x: 450, y: 520 }, // Bottom-center-right
+        { x: 550, y: 520 }, // Bottom-right
+        { x: 650, y: 520 }  // Bottom-far-right
+    ];
+
+    let dImage = null; // Track the image at D position
+    let fImage = null; // Track the image at F position
+    let currentCenterImage = null; // Track the current image in the center
+    let centerImageKey = null; // Track the key of the current center image
+    let statusText = null; // Track the status text displayed on the canvas
+    let startTime = null; // Track the start time for timing the match
+    let canReleaseSkill = true; // Track whether the skill can be released
+    let averageTimeText = null; // Track the average time text displayed on the canvas
+    let totalTime = 0; // Track the total time of successful matches
+    let matchCount = 0; // Track the number of successful matches
+
+    function preload() {
+        // Load 10 images for all possible queue states
+        const queueStates = ['QQQ', 'QQW', 'QQE', 'QWW', 'QWE', 'QEE', 'WWW', 'WWE', 'WEE', 'EEE'];
+        queueStates.forEach(state => {
+            this.load.image(state, `/static/injoker/${state}.png`);
+        });
+
+        // Load 6 images for the bottom row
+        this.load.image('bottom1', '/static/injoker/Q.png');
+        this.load.image('bottom2', '/static/injoker/W.png');
+        this.load.image('bottom3', '/static/injoker/E.png');
+        this.load.image('bottom4', '/static/injoker/invoked spell.png');
+        this.load.image('bottom5', '/static/injoker/invoked spell.png');
+        this.load.image('bottom6', '/static/injoker/invoke.png');
+
+        // Load 3 images for the queue
+        this.load.image('imageQ', '/static/injoker/Q.png');
+        this.load.image('imageW', '/static/injoker/W.png');
+        this.load.image('imageE', '/static/injoker/E.png');
+
+        // Load the invoke.mp3 audio file
+        // https://dota2.fandom.com/wiki/Invoker/Sounds
+        this.load.audio('invokeSound', '/static/injoker/invoke.mp3');
+    }
+
+    function create() {
+        // Add keyboard listeners
+        this.input.keyboard.on('keydown-Q', () => handleKeyPress('Q', this));
+        this.input.keyboard.on('keydown-W', () => handleKeyPress('W', this));
+        this.input.keyboard.on('keydown-E', () => handleKeyPress('E', this));
+        this.input.keyboard.on('keydown-R', () => {
+            updateDPosition(this);
+            // Removed invoke.mp3 sound playback
+        });
+        this.input.keyboard.on('keydown-D', () => checkMatch('D', this));
+        this.input.keyboard.on('keydown-F', () => checkMatch('F', this));
+
+        // Display 6 images at the bottom of the canvas with text labels
+        this.add.image(bottomPositions[0].x, bottomPositions[0].y, 'bottom1').setScale(0.5);
+        this.add.text(bottomPositions[0].x - 30, bottomPositions[0].y - 40, 'Q', { 
+            font: '16px Arial', 
+            fill: '#ffffff', 
+            shadow: { offsetX: 3, offsetY: 3, color: '#000000', blur: 4, stroke: true, fill: true }
+        }).setDepth(2);
+
+        this.add.image(bottomPositions[1].x, bottomPositions[1].y, 'bottom2').setScale(0.5);
+        this.add.text(bottomPositions[1].x - 30, bottomPositions[1].y - 40, 'W', { 
+            font: '16px Arial', 
+            fill: '#ffffff', 
+            shadow: { offsetX: 3, offsetY: 3, color: '#000000', blur: 4, stroke: true, fill: true }
+        }).setDepth(2);
+
+        this.add.image(bottomPositions[2].x, bottomPositions[2].y, 'bottom3').setScale(0.5);
+        this.add.text(bottomPositions[2].x - 30, bottomPositions[2].y - 40, 'E', { 
+            font: '16px Arial', 
+            fill: '#ffffff', 
+            shadow: { offsetX: 3, offsetY: 3, color: '#000000', blur: 4, stroke: true, fill: true }
+        }).setDepth(2);
+
+        this.add.image(bottomPositions[3].x, bottomPositions[3].y, 'bottom4').setScale(0.5);
+        this.add.text(bottomPositions[3].x - 30, bottomPositions[3].y - 40, 'D', { 
+            font: '16px Arial', 
+            fill: '#ffffff', 
+            shadow: { offsetX: 3, offsetY: 3, color: '#000000', blur: 4, stroke: true, fill: true }
+        }).setDepth(2);
+
+        this.add.image(bottomPositions[4].x, bottomPositions[4].y, 'bottom5').setScale(0.5);
+        this.add.text(bottomPositions[4].x - 30, bottomPositions[4].y - 40, 'F', { 
+            font: '16px Arial', 
+            fill: '#ffffff', 
+            shadow: { offsetX: 3, offsetY: 3, color: '#000000', blur: 4, stroke: true, fill: true }
+        }).setDepth(2);
+
+        this.add.image(bottomPositions[5].x, bottomPositions[5].y, 'bottom6').setScale(0.5);
+        this.add.text(bottomPositions[5].x - 30, bottomPositions[5].y - 40, 'R', { 
+            font: '16px Arial', 
+            fill: '#ffffff', 
+            shadow: { offsetX: 3, offsetY: 3, color: '#000000', blur: 4, stroke: true, fill: true }
+        }).setDepth(2);
+
+        // Add a status text at the top of the canvas
+        statusText = this.add.text(400, 40, 'Waiting for battle...', {
+            font: '20px Arial',
+            fill: '#ffffff',
+            align: 'center'
+        }).setOrigin(0.5);
+
+        // Add average time and success count text below the status text
+        averageTimeText = this.add.text(400, 70, 'AVG of 0: N/A', {
+            font: '16px Arial',
+            fill: '#ffffff',
+            align: 'center'
+        }).setOrigin(0.5);
+
+        // Wait 5 seconds before generating the random image
+        setTimeout(() => {
+            displayRandomCenterImage(this);
+        }, 5000);
+    }
+
+    function update() {
+        // Update logic if needed
+    }
+
+    function handleKeyPress(key, scene) {
+        // console.log(`Key pressed: ${key}`);
+
+        // Determine the image key based on the pressed key
+        let imageKey = null;
+        switch (key) {
+            case 'Q':
+                imageKey = 'imageQ';
+                break;
+            case 'W':
+                imageKey = 'imageW';
+                break;
+            case 'E':
+                imageKey = 'imageE';
+                break;
+            default:
+                console.log(`Unhandled key: ${key}`);
+                return; // Exit the function if the key is not handled
+        }
+
+        if (imageKey) {
+            addImageToQueue(imageKey, scene);
+        }
+    }
+
+    function addImageToQueue(imageKey, scene) {
+        if (queue.length < 3) {
+            // If the queue is not full, add the image to the next available position
+            const newImage = scene.add.image(positions[queue.length].x, positions[queue.length].y, imageKey).setScale(0.25);
+            queue.push(newImage);
+        } else {
+            // If the queue is full, remove the front image and add the new image to the rightmost position
+            const removedImage = queue.shift(); // Remove the front image
+            removedImage.destroy(); // Destroy the removed image
+
+            const newImage = scene.add.image(positions[2].x, positions[2].y, imageKey).setScale(0.25); // Add to the rightmost position
+            queue.push(newImage);
+        }
+
+        // Reposition all images in the queue
+        queue.forEach((image, index) => {
+            image.setPosition(positions[index].x, positions[index].y);
+        });
+    }
+
+    function displayQueueContents() {
+        if (queue.length === 0) {
+            console.log("The queue is empty.");
+        } else {
+            console.log("Current queue contents (sorted):");
+
+            // Create a mapping for sorting based on Q, W, E order
+            const sortOrder = { imageQ: 1, imageW: 2, imageE: 3 };
+
+            // Extract and sort the queue contents
+            const sortedQueue = queue
+                .map(image => image.texture.key) // Extract texture keys
+                .sort((a, b) => (sortOrder[a] || 99) - (sortOrder[b] || 99)); // Sort based on predefined order
+
+            // Output the sorted queue
+            sortedQueue.forEach((key, index) => {
+                console.log(`Position ${index + 1}: ${key}`);
+            });
+        }
+    }
+
+    function updateDPosition(scene) {
+        if (queue.length > 0) {
+            // Create a mapping for sorting based on Q, W, E order
+            const sortOrder = { imageQ: 1, imageW: 2, imageE: 3 };
+
+            // Extract and sort the queue contents
+            const sortedQueue = queue
+                .map(image => image.texture.key) // Extract texture keys
+                .sort((a, b) => (sortOrder[a] || 99) - (sortOrder[b] || 99)); // Sort based on predefined order
+
+            // Combine the sorted keys into a single string (e.g., "QQW")
+            const queueKey = sortedQueue.map(key => key.replace('image', '')).join('');
+
+            // Check if the corresponding image exists
+            if (scene.textures.exists(queueKey)) {
+                // If the new image is the same as the current D image, return early
+                if (dImage && dImage.texture.key === queueKey) {
+                    console.log(`The new image (${queueKey}) is the same as the current D image. No changes made.`);
+                    return;
+                }
+
+                // If D position already has an image, move it to F position
+                if (dImage) {
+                    if (fImage) {
+                        fImage.destroy(); // Remove the existing image at F position
+                    }
+                    fImage = scene.add.image(bottomPositions[4].x, bottomPositions[4].y, dImage.texture.key).setScale(0.5);
+                    dImage.destroy(); // Remove the image from D position
+                }
+
+                // Place the new image at D position
+                dImage = scene.add.image(bottomPositions[3].x, bottomPositions[3].y, queueKey).setScale(0.5);
+            } else {
+                console.log(`No image found for queue state: ${queueKey}`);
+            }
+        } else {
+            console.log("The queue is empty. No image to display at D position.");
+        }
+    }
+
+    function checkMatch(key, scene) {
+        // Prevent further actions if skill release is disabled
+        if (!canReleaseSkill) {
+            console.log('Skill release is disabled. Wait for the next skill.');
+            return;
+        }
+
+        // Determine the expected image key based on the pressed key
+        let expectedImageKey = null;
+        if (key === 'D') {
+            expectedImageKey = dImage ? dImage.texture.key : null;
+        } else if (key === 'F') {
+            expectedImageKey = fImage ? fImage.texture.key : null;
+        }
+
+        // Check if the expected image matches the center image
+        if (expectedImageKey && expectedImageKey === centerImageKey) {
+            console.log(`Success! ${key} matches the center image.`);
+
+            // Calculate the elapsed time
+            const elapsedTime = (performance.now() - startTime) / 1000;
+
+            // Update the status text to show success and elapsed time
+            if (statusText) {
+                statusText.setText(`Skill released successfully in ${elapsedTime.toFixed(2)} seconds`);
+            }
+
+            // Play the invoke.mp3 sound
+            const invokeSound = scene.sound.add('invokeSound');
+            invokeSound.play();
+
+            // Update total time and match count
+            totalTime += elapsedTime;
+            matchCount++;
+
+            // Update the average time and success count text
+            if (averageTimeText) {
+                const averageTime = totalTime / matchCount;
+                averageTimeText.setText(`AVG of ${matchCount}: ${averageTime.toFixed(2)}`);
+            }
+
+            // Disable skill release until a new skill is generated
+            canReleaseSkill = false;
+
+            // Schedule a new random image to appear in 1~10 seconds
+            const delay = Math.floor(Math.random() * 10 + 1) * 1000; // Random delay between 1 and 10 seconds
+            setTimeout(() => {
+                displayRandomCenterImage(scene);
+                canReleaseSkill = true; // Re-enable skill release
+            }, delay);
+        } else {
+            console.log(`Failure! ${key} does not match the center image.`);
+        }
+    }
+
+    function displayRandomCenterImage(scene) {
+        // Remove the current center image if it exists
+        if (currentCenterImage) {
+            currentCenterImage.destroy();
+        }
+
+        // Randomly select an image key from the queue states
+        const queueStates = ['QQQ', 'QQW', 'QQE', 'QWW', 'QWE', 'QEE', 'WWW', 'WWE', 'WEE', 'EEE'];
+        centerImageKey = queueStates[Math.floor(Math.random() * queueStates.length)];
+
+        // Create the new image with an initial scale of 0 (invisible)
+        currentCenterImage = scene.add.image(400, 230, centerImageKey).setScale(0).setDepth(1);
+
+        // Animate the image: 0 -> 2 -> 1.5 scale with speed increasing
+        scene.tweens.add({
+            targets: currentCenterImage,
+            scale: 2, // Scale up to 2
+            duration: 100, // First phase duration
+            ease: 'Power2', // Easing function for smooth animation
+            onComplete: () => {
+                // Second phase: Scale down to 1.5
+                scene.tweens.add({
+                    targets: currentCenterImage,
+                    scale: 1.5, // Final scale
+                    duration: 50, // Second phase duration
+                    ease: 'Power2' // Easing function for smooth animation
+                });
+            }
+        });
+
+        // Record the start time for timing the match
+        startTime = performance.now();
+
+        // Ensure the status text is reset to the default message
+        if (statusText) {
+            statusText.setText('Use this skill to defeat the opponent');
+        }
+    }
+</script>
+{% endblock %}

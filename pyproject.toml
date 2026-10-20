@@ -1,0 +1,9 @@
+[project]
+name = "legend-zone"
+version = "0.1.0"
+description = "Single-server Bot battle platform"
+requires-python = ">=3.11"
+dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "python-multipart>=0.0.18", "itsdangerous>=2.2,<3", "werkzeug>=3.0,<4", "websockets>=15,<18", "jinja2>=3.1,<4"]
+
+[tool.setuptools]
+packages = ["server", "judges"]

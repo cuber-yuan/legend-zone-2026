@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% set guide_game = "Mini Snake" if request.path == "/msnake" or (match is defined and match and match.game == "Mini Snake") else "Snake" %}
+
+{% block title %}{% if match_id %}Watch Match{% else %}{{ guide_game }}{% endif %}{% endblock %}
+
+{% block floating_corner %}
+<div id="floating-corner" class="snake-direction-pad fixed bottom-6 right-6 z-50 lg:hidden hidden" aria-label="Movement controls">
+  {% for direction, rotation in [('up', -90), ('left', 180), ('down', 90), ('right', 0)] %}
+  <button id="arrow-{{ direction }}" type="button" aria-label="Move {{ direction }}" style="grid-area:{{ direction }};">
+    <svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate({{ rotation }}deg);"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+  </button>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='game-arena.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='match-players.css') }}">
+
+
+<script src="/static/vendor/phaser.js"></script>
+<!-- Shared replay player -->
+<script src="{{ url_for('static', filename='replay-player.js') }}"></script>
+<script src="{{ url_for('static', filename='snake/snake.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='snake/snake.css') }}">
+<link href="/static/vendor/prism.css" rel="stylesheet" />
+<script src="/static/vendor/prism.js"></script>
+<script src="/static/vendor/prism-python.js"></script>
+
+
+
+<div class="snake-page">
+  <div class="max-w-screen-xl mx-auto">
+    <section class="snake-arena" aria-label="{{ guide_game }} game board">
+      <div class="snake-heading game-heading">
+        <h1>{{ guide_game }}</h1>
+      </div>
+      {% set player_sides = [{'label': 'Blue', 'marker': 'blue'}, {'label': 'Red', 'marker': 'red'}] %}
+      {% include 'components/match_players.html' %}
+      <div class="snake-stage">
+        <div class="snake-board-frame">
+          <div id="phaser-container"></div>
+        </div>
+      </div>
+      <div class="snake-footer game-footer">
+        <div id="spectatorBadge" class="spectator-badge">Spectating</div>
+        <div id="turnHint" class="turn-hint"></div>
+      </div>
+    </section>
+
+    {% set replay_unit = "Turn" %}
+    {% include "components/replay_controls.html" %}
+
+    {% if not match_id %}
+    {% include "game_guides/snake.html" %}
+    {% endif %}
+  </div>
+</div>
+
+<script>
+const IS_MATCH_PAGE = {{ 'true' if match_id else 'false' }};
+const MATCH_ID = "{{ match_id or '' }}";
+const MATCH_STATUS = "{{ match.status if match_id and match else '' }}";
+const MATCH_GAME_NAME = "{{ match.game if match_id and match else '' }}";
+</script>
+
+{% endblock %}

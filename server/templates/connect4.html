@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}{% if match_id %}Watch Match{% else %}Connect Four{% endif %}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='game-arena.css') }}">
+
+<script src="/static/vendor/phaser.js"></script>
+<script src="{{ url_for('static', filename='replay-player.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='connect4/connect4.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='match-players.css') }}">
+<link href="/static/vendor/prism.css" rel="stylesheet">
+<script src="/static/vendor/prism.js"></script>
+<script src="/static/vendor/prism-python.js"></script>
+
+<div class="c4-page">
+  <section class="c4-arena" aria-labelledby="c4-title">
+    <header class="c4-heading game-heading">
+      <h1 id="c4-title" class="c4-title">Connect Four</h1>
+    </header>
+    {% set player_sides = [{'label': 'Blue', 'marker': 'blue'}, {'label': 'Red', 'marker': 'red'}] %}
+    {% include 'components/match_players.html' %}
+    <div class="c4-stage">
+      <div id="phaser-container" role="img" aria-label="Connect Four board: seven columns and six rows"></div>
+      <div class="c4-columns" role="group" aria-label="Choose a column">
+        {% for column in range(7) %}<button type="button" data-column="{{ column }}" aria-label="Drop in column {{ column + 1 }}" disabled>{{ column + 1 }}</button>{% endfor %}
+      </div>
+    </div>
+    <footer class="c4-footer game-footer">
+      <div id="gameResult" class="c4-result" role="status"><strong id="resultTitle"></strong><span id="resultDetail"></span></div>
+      <div id="spectatorBadge" class="spectator-badge">Spectating</div>
+      <p id="turnHint" class="turn-hint" role="status" aria-live="polite"></p>
+    </footer>
+  </section>
+
+  {% set replay_unit = "Move" %}
+    {% include "components/replay_controls.html" %}
+
+  {% if not match_id %}{% set guide_game = 'Connect Four' %}{% include 'game_guides/board.html' %}{% endif %}
+</div>
+<script>
+window.CONNECT4_CONFIG = {{ {
+  'matchId': match_id or '',
+  'status': match.status if match_id and match else '',
+  'players': match.players if match_id and match and match.players else none,
+  'moves': match.move_history if match_id and match and match.move_history else [],
+  'winner': (match.winner + 1 if match.winner in [0, 1] else 0) if match_id and match else 0
+} | tojson }};
+</script>
+<script src="{{ url_for('static', filename='connect4/connect4.js') }}"></script>
+{% endblock %}

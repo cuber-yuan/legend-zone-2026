@@ -1,0 +1,220 @@
+/**
+ * ReplayController — shared replay player UI used by all game pages
+ * (Gomoku, Tic Tac Toe, Connect Four, Snake/Mini Snake, Tank Battle).
+ *
+ * Owns what the three pages used to duplicate:
+ *   - current frame index (0..maxIndex)
+ *   - play/pause timer with speed control (0.5x / 1x / 2x / 4x)
+ *   - transport buttons, slider, turn counter, status text
+ *
+ * The game page only supplies onRender(index), which must rebuild the
+ * board state up to `index` (usually by replaying from frame 0).
+ *
+ * Expected DOM ids (all optional — missing elements are ignored, so this
+ * also works on pages without replay UI):
+ *   #btnFirst #btnPrev #btnPlayPause #btnNext #btnLast
+ *   #replaySlider #replayStatus #replaySpeed
+ *   + counter element: options.counterId (default: 'replayCounter')
+ */
+class ReplayController {
+    /**
+     * @param {Object}   options
+     * @param {Function} options.onRender          (index) => void, required
+     * @param {number}   [options.baseIntervalMs]  interval at 1x speed, default 800
+     * @param {string}    [options.counterId]       turn counter element id
+     * @param {Function} [options.onIntervalChange] (intervalMs) => void, fired when
+     *                                              the effective interval changes
+     *                                              (speed switch / play start)
+     */
+    constructor({ onRender, baseIntervalMs = 800, counterId = 'replayCounter', onIntervalChange = null }) {
+        if (typeof onRender !== 'function') {
+            throw new Error('ReplayController: onRender is required');
+        }
+        this.onRender = onRender;
+        this.baseIntervalMs = baseIntervalMs;
+        this.counterId = counterId;
+        this.onIntervalChange = onIntervalChange;
+
+        this.maxIndex = 0;
+        this.index = 0;
+        this.speed = 1;
+        this.playing = false;
+        this.timer = null;
+        this.attached = false;
+        this.demo = false;
+        this.loopTimer = null;
+    }
+
+    /** Bind DOM events. Call once after the DOM is ready. Idempotent. */
+    attach() {
+        if (this.attached) return;
+        this.attached = true;
+
+        const on = (id, evt, fn) => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener(evt, fn);
+        };
+
+        on('btnFirst', 'click', () => this.goto(0));
+        on('btnPrev', 'click', () => this.step(-1));
+        on('btnPlayPause', 'click', () => this.toggle());
+        on('btnNext', 'click', () => this.step(1));
+        on('btnLast', 'click', () => this.goto(this.maxIndex));
+        on('replaySlider', 'input', (e) => this.goto(parseInt(e.target.value, 10)));
+        on('replaySpeed', 'change', (e) => this.setSpeed(parseFloat(e.target.value) || 1));
+        on('replayControls', 'keydown', (e) => {
+            if (e.target.closest('[data-replay-debug]')) return;
+            if (e.target.matches('input, select, textarea, a')) return;
+            if (e.key === 'ArrowLeft') { e.preventDefault(); this.step(-1); }
+            else if (e.key === 'ArrowRight') { e.preventDefault(); this.step(1); }
+            else if (e.key === ' ' && e.target.id === 'replayControls') { e.preventDefault(); this.toggle(); }
+        });
+        on('replayControls', 'replay:seek', (e) => {
+            if (Number.isInteger(e.detail?.index)) this.goto(e.detail.index);
+        });
+        this._syncUI();
+    }
+
+    show() {
+        const root = document.getElementById('replayControls');
+        if (root) root.hidden = false;
+    }
+
+    hide() {
+        this.pause();
+        const root = document.getElementById('replayControls');
+        if (root) root.hidden = true;
+    }
+
+    /** Effective per-frame interval, derived from base speed and multiplier. */
+    get intervalMs() {
+        return Math.max(150, Math.round(this.baseIntervalMs / this.speed));
+    }
+
+    /**
+     * Load a replay whose last frame index is `maxIndex`, render frame 0.
+     *   - Gomoku: maxIndex = moves.length (states: empty board + n moves)
+     *   - Snake/Tank: maxIndex = displays.length - 1 (displays[0] is the initial state)
+     */
+    load(maxIndex) {
+        this.pause();
+        this.show();
+        this.maxIndex = Math.max(0, maxIndex || 0);
+        const slider = document.getElementById('replaySlider');
+        if (slider) slider.max = this.maxIndex;
+        this.render(0);
+    }
+
+    setStatus(text) {
+        const el = document.getElementById('replayStatus');
+        if (el) el.textContent = text;
+    }
+
+    /** Render frame `index` (clamped) and sync the UI. */
+    render(index) {
+        this.index = Math.max(0, Math.min(this.maxIndex, index));
+        this.onRender(this.index);
+        this._syncUI();
+        if (this.playing && this.index >= this.maxIndex) {
+            this.pause();
+            if (this.demo) this.loopTimer = setTimeout(() => this.play(), 2000);
+        }
+    }
+
+    play() {
+        if (this.playing || this.maxIndex <= 0) return;
+        if (this.index >= this.maxIndex) this.render(0); // restart from beginning
+        this.playing = true;
+        this._setPlayIcon(true);
+        if (this.onIntervalChange) this.onIntervalChange(this.intervalMs);
+        this.timer = setInterval(() => {
+            if (this.index >= this.maxIndex) {
+                this.pause();
+                return;
+            }
+            this.render(this.index + 1);
+        }, this.intervalMs);
+    }
+
+    pause() {
+        clearTimeout(this.loopTimer);
+        this.loopTimer = null;
+        this.playing = false;
+        this._setPlayIcon(false);
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+    }
+
+    toggle() {
+        this.playing ? this.pause() : this.play();
+    }
+
+    step(delta) {
+        this.pause();
+        this.render(this.index + delta);
+    }
+
+    goto(index) {
+        this.pause();
+        this.render(index);
+    }
+
+    setSpeed(speed) {
+        this.speed = speed > 0 ? speed : 1;
+        if (this.onIntervalChange) this.onIntervalChange(this.intervalMs);
+        if (this.playing) { // restart timer with the new interval
+            this.pause();
+            this.play();
+        }
+    }
+
+    _setPlayIcon(playing) {
+        const btn = document.getElementById('btnPlayPause');
+        if (!btn) return;
+        const replay = !playing && this.maxIndex > 0 && this.index >= this.maxIndex;
+        const label = playing ? 'Pause' : replay ? 'Replay' : 'Play';
+        const action = playing ? 'Pause replay' : replay ? 'Replay from beginning' : 'Play replay';
+        btn.setAttribute('aria-label', action);
+        btn.title = action;
+        const playIcon = btn.querySelector('.rp-icon-play');
+        const pauseIcon = btn.querySelector('.rp-icon-pause');
+        const text = btn.querySelector('.rp-play-label');
+        if (playIcon) playIcon.hidden = playing;
+        if (pauseIcon) pauseIcon.hidden = !playing;
+        if (text) text.textContent = label;
+    }
+
+    _syncUI() {
+        const counter = document.getElementById(this.counterId);
+        if (counter) counter.textContent = this.index + ' / ' + this.maxIndex;
+
+        const slider = document.getElementById('replaySlider');
+        if (slider) {
+            slider.value = this.index;
+            slider.disabled = this.maxIndex <= 0;
+            slider.setAttribute('aria-valuetext', `${this.index} of ${this.maxIndex}`);
+        }
+        const root = document.getElementById('replayControls');
+        if (root) {
+            root.style.setProperty('--rp-progress', `${this.maxIndex ? this.index / this.maxIndex * 100 : 0}%`);
+            root.dataset.frame = this.index;
+            root.dataset.maxFrame = this.maxIndex;
+            root.dispatchEvent(new CustomEvent('replay:frame', { detail: { index: this.index, maxIndex: this.maxIndex } }));
+        }
+        const speed = document.getElementById('replaySpeed');
+        if (speed) speed.value = String(this.speed);
+
+        const disable = (id, disabled) => {
+            const btn = document.getElementById(id);
+            if (btn) btn.disabled = disabled;
+        };
+        disable('btnFirst', this.index <= 0);
+        disable('btnPrev', this.index <= 0);
+        disable('btnNext', this.index >= this.maxIndex);
+        disable('btnLast', this.index >= this.maxIndex);
+        disable('btnPlayPause', this.maxIndex <= 0);
+        this._setPlayIcon(this.playing);
+    }
+}

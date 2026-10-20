@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Cat King{% endblock %}
+
+{% block content %}
+<body>
+    <div class="text-center">
+        <!-- <canvas id="gameCanvas" width="600" height="600" class="mx-auto"></canvas> -->
+        <img src="{{ url_for('static', filename='catking/assets/shred.jpg') }}" alt="SHRED" class="mt-4 mx-auto w-32">
+        <img src="{{ url_for('static', filename='catking/assets/rip.jpg') }}" alt="RIP" class="mt-4 mx-auto w-32">
+        <img src="{{ url_for('static', filename='catking/assets/bite.jpg') }}" alt="BITE" class="mt-4 mx-auto w-32">
+    </div>
+</body>
+{% endblock %}

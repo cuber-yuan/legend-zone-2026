@@ -1,0 +1,18 @@
+.snake-page { max-width: 1000px; margin: 2rem auto; }
+.snake-arena { overflow: hidden; border: 1px solid #e2e8f0; border-radius: 1.25rem; background: #fff; box-shadow: 0 16px 45px rgba(15,23,42,0.08); }
+.snake-stage { padding: 0.75rem 1.5rem 1.25rem; background: radial-gradient(ellipse at 50% 70%, #e2e8f0, #f8fafc 65%, #fff); }
+.snake-board-frame { max-width: 736px; margin: auto; padding: 8px; border: 1px solid #334155; border-radius: 1rem; background: linear-gradient(140deg, #334155, #172437 65%); box-shadow: 0 12px 24px rgba(15,23,42,0.16), inset 0 1px 0 rgba(255,255,255,0.12); }
+.snake-arena #phaser-container { width: 100%; max-width: 100%; margin: auto; overflow: hidden; border-radius: 0.5rem; background: #19293e; }
+.snake-arena canvas { display: block; max-width: 100%; margin: 0; border: 0; }
+.snake-direction-pad { grid-template-areas: ". up ." "left down right"; gap: 5px; padding: 10px; background: rgba(255,255,255,0.95); border: 1px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 8px 30px rgba(15,23,42,0.15); backdrop-filter: blur(12px); }
+.snake-direction-pad:not(.hidden) { display: grid; }
+.snake-direction-pad button { width: 42px; height: 42px; display: grid; place-items: center; color: #475569; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 0.65rem; touch-action: manipulation; }
+.snake-direction-pad button:active { background: #dbeafe; color: #2563eb; }
+.snake-direction-pad button:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+.snake-direction-pad svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (min-width: 1024px) { .snake-direction-pad:not(.hidden) { display: none; } }
+@media (max-width: 600px) {
+    .snake-page { margin: 1rem auto; }
+    .snake-stage { padding: 0.25rem 0.65rem 1rem; }
+    .snake-board-frame { border-radius: 0.75rem; }
+}

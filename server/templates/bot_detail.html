@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ bot.name }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='match-table.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='bot-rating.css') }}">
+<style>
+  .bot-tab { padding: 1rem 1.25rem; border-bottom: 2px solid transparent; color: #64748b; font-weight: 600; }
+  .bot-tab:hover { color: #1d4ed8; background: #f8fafc; }
+  .bot-tab[aria-selected="true"] { color: #1d4ed8; border-bottom-color: #3b82f6; }
+  .bot-tab:focus-visible { outline: 2px solid #3b82f6; outline-offset: -4px; }
+  .bot-panel[hidden] { display: none; }
+</style>
+<div class="max-w-screen-lg mx-auto">
+
+  <!-- Bot summary -->
+  <div class="bg-white p-5 rounded-lg shadow mb-6">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div class="min-w-0">
+        <h1 class="text-2xl font-bold text-gray-900 break-words">
+          {{ bot.name }}
+          {% if bot.latest_version %}<span class="text-lg text-gray-500">v{{ bot.latest_version }}</span>{% endif %}
+        </h1>
+        <div class="text-sm text-gray-500 mt-1">
+          by
+          {% if bot.owner %}
+            <a href="{{ url_for('main.profile', username=bot.owner) }}" class="text-indigo-600 hover:underline">{{ bot.owner }}</a>
+          {% else %}
+            <span class="text-gray-400">unknown</span>
+          {% endif %}
+          {% if bot.created_at %} &middot; created <span data-utc="{{ bot.created_at }}">{{ bot.created_at }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        {% if bot.game %}
+          <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-sm font-medium">{{ bot.game }}</span>
+        {% endif %}
+        <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-medium">
+          {{ bot.language or 'unknown' }}
+        </span>
+        <span class="px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-bold">
+          {% if bot.rating is not none %}{{ bot.rating | round(2) }}{% else %}Unrated{% endif %}
+        </span>
+      </div>
+    </div>
+
+    {% if bot.description %}
+      <p class="mt-4 text-gray-700 whitespace-pre-wrap break-words">{{ bot.description }}</p>
+    {% endif %}
+
+    {% if current_user.is_authenticated and current_user.id == bot.user_id %}
+      <div class="mt-4">
+        <a href="{{ url_for('upload.new_version_page', bot_id=bot.id) }}"
+           class="inline-block px-3 py-1 bg-green-600 text-white rounded hover:bg-green-500 text-sm">New Version</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Rating history -->
+  <div class="bg-white rounded-lg shadow mb-6 overflow-hidden">
+    <div class="bg-gray-800 px-4 py-2 flex items-center justify-between">
+      <h2 class="text-white font-semibold">Rating History</h2>
+      <span class="text-gray-400 text-xs">
+        {% if history_total > history_limit %}
+          showing last {{ history_limit }} of {{ history_total }} &middot;
+        {% endif %}
+        click a point to open its match
+      </span>
+    </div>
+    <div class="p-4">
+      {% if history %}
+        <canvas id="rating-chart" height="120"></canvas>
+      {% else %}
+        <p class="text-gray-500 text-sm py-6 text-center">
+          No rating history yet. This bot predates rating tracking, or has not finished a match.
+        </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Version list -->
+  {% if versions and versions|length > 1 %}
+    <div class="bg-white rounded-lg shadow mb-6 overflow-hidden">
+      <div class="bg-gray-800 px-4 py-2">
+        <h2 class="text-white font-semibold">Versions</h2>
+      </div>
+      <table class="min-w-full text-sm">
+        <thead class="bg-gray-100 text-left text-gray-700">
+          <tr>
+            <th class="px-4 py-2">Version</th>
+            <th class="px-4 py-2">Description</th>
+            <th class="px-4 py-2">Rating</th>
+            <th class="px-4 py-2">Uploaded</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in versions %}
+            <tr class="border-t border-gray-200 {% if loop.first %}bg-blue-50{% endif %}">
+              <td class="px-4 py-2 font-semibold">v{{ v.version_number }}{% if loop.first %} <span class="text-xs text-blue-600">(latest)</span>{% endif %}</td>
+              <td class="px-4 py-2 text-gray-700">{{ v.description or '' }}</td>
+              <td class="px-4 py-2">{{ '%.1f'|format(v.rating) if v.rating is not none else 'Unrated' }}</td>
+              <td class="px-4 py-2 text-gray-500"><span data-utc="{{ v.created_at }}">{{ v.created_at }}</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  <!-- Match history and source share one card to keep the page compact. -->
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div role="tablist" aria-label="Bot details" class="flex border-b border-slate-200">
+      <button type="button" id="matches-tab" class="bot-tab" role="tab" aria-selected="true"
+              aria-controls="matches-panel">Recent Matches</button>
+      <button type="button" id="source-tab" class="bot-tab" role="tab" aria-selected="false"
+              aria-controls="source-panel" tabindex="-1">Source Code</button>
+    </div>
+    <div id="matches-panel" class="bot-panel" role="tabpanel" aria-labelledby="matches-tab" tabindex="0">
+      {% with match_table_id='bot-matches-tbody', show_rating_delta=true %}
+        {% include 'components/match_table.html' %}
+      {% endwith %}
+    </div>
+    <div id="source-panel" class="bot-panel" role="tabpanel" aria-labelledby="source-tab" tabindex="0" hidden>
+    <div class="flex flex-wrap items-center justify-between gap-2 bg-gray-800 px-4 py-2">
+      <div class="flex items-center gap-2">
+        <h2 class="text-white font-semibold">Source code</h2>
+        {% if bot.is_private %}
+          <span class="px-2 py-0.5 rounded bg-yellow-600 text-white text-xs font-medium">Private</span>
+        {% else %}
+          <span class="px-2 py-0.5 rounded bg-gray-600 text-gray-200 text-xs font-medium">Public</span>
+        {% endif %}
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        {% if bot.can_download %}
+          <a href="{{ url_for('upload.download_bot', bot_id=bot.id) }}" id="download-bot"
+             class="px-3 py-1 rounded bg-gray-600 text-white text-sm hover:bg-gray-500 transition-colors duration-200">
+            Download
+          </a>
+        {% endif %}
+        {% if bot.source_code %}
+          <button type="button" id="copy-code"
+                  class="px-3 py-1 rounded bg-gray-600 text-white text-sm hover:bg-gray-500 transition-colors duration-200">
+            Copy
+          </button>
+        {% endif %}
+        {% if bot.is_owner %}
+          <button type="button" id="toggle-visibility"
+                  data-private="{{ 1 if bot.is_private else 0 }}"
+                  class="px-3 py-1 rounded bg-blue-600 text-white text-sm hover:bg-blue-500 transition-colors duration-200">
+            {% if bot.is_private %}Make public{% else %}Make private{% endif %}
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if bot.source_code %}
+      <pre class="p-4 overflow-x-auto text-sm leading-relaxed bg-gray-50 text-gray-800"><code id="bot-source">{{ bot.source_code }}</code></pre>
+    {% elif bot.is_private and not bot.is_owner %}
+      <div class="p-6 text-gray-600 text-sm">
+        This bot's source code is private. The owner has chosen not to share it.
+      </div>
+    {% elif bot.has_files %}
+      <div class="p-6 text-gray-600 text-sm">
+        This bot was uploaded as a file package. Its source is stored on the server and is not shown here.
+      </div>
+    {% else %}
+      <div class="p-6 text-gray-500 text-sm">No source code is available for this bot.</div>
+    {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-6">
+    <a href="{{ url_for('main.rating') }}" class="text-sm text-indigo-600 hover:underline">&larr; Back to ratings</a>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='bot-rating.js') }}"></script>
+<script src="{{ url_for('static', filename='match-table.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    MatchTable.render(document.getElementById('bot-matches-tbody'), {{ recent_matches | tojson }},
+      'No matches yet.', {showRatingDelta: true});
+    const tabs = Array.from(document.querySelectorAll('.bot-tab'));
+    function selectTab(selected) {
+      tabs.forEach(tab => {
+        const active = tab === selected;
+        tab.setAttribute('aria-selected', String(active));
+        tab.tabIndex = active ? 0 : -1;
+        document.getElementById(tab.getAttribute('aria-controls')).hidden = !active;
+      });
+    }
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => selectTab(tab));
+      tab.addEventListener('keydown', event => {
+        const offsets = {ArrowRight: 1, ArrowLeft: -1};
+        let next;
+        if (event.key in offsets) next = tabs[(index + offsets[event.key] + tabs.length) % tabs.length];
+        else if (event.key === 'Home') next = tabs[0];
+        else if (event.key === 'End') next = tabs[tabs.length - 1];
+        if (!next) return;
+        event.preventDefault();
+        selectTab(next);
+        next.focus();
+      });
+    });
+  });
+</script>
+
+{% if bot.source_code %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const button = document.getElementById('copy-code');
+    const source = document.getElementById('bot-source');
+    if (!button || !source) return;
+
+    button.addEventListener('click', async function () {
+      const text = source.textContent;
+      const flash = function (label) {
+        button.textContent = label;
+        setTimeout(function () { button.textContent = 'Copy'; }, 1500);
+      };
+      try {
+        // navigator.clipboard is only exposed on secure origins, so a page served
+        // over plain http on a LAN address needs the execCommand fallback.
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.setAttribute('readonly', '');
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          if (!document.execCommand('copy')) {
+            document.body.removeChild(ta);
+            throw new Error('copy command rejected');
+          }
+          document.body.removeChild(ta);
+        }
+        flash('Copied!');
+      } catch (err) {
+        flash('Copy failed');
+      }
+    });
+  });
+</script>
+{% endif %}
+
+{% if bot.is_owner %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('toggle-visibility');
+    if (!btn) return;
+    btn.addEventListener('click', async function () {
+      const makePrivate = btn.dataset.private === '1' ? false : true;
+      btn.disabled = true;
+      try {
+        const resp = await platformFetch('{{ url_for("upload.set_visibility", bot_id=bot.id) }}', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ is_private: makePrivate })
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          alert(data.message || 'Failed to update visibility.');
+          btn.disabled = false;
+          return;
+        }
+        window.location.reload();
+      } catch (err) {
+        alert('Failed to update visibility: ' + err.message);
+        btn.disabled = false;
+      }
+    });
+  });
+</script>
+{% endif %}
+
+{% if history %}
+<script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}"></script>
+<script>
+  (function () {
+    const history = {{ history | tojson }};
+    const canvas = document.getElementById('rating-chart');
+    if (!canvas || !window.Chart) return;
+
+    function shortLabel(iso) {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      const p = n => (n < 10 ? '0' + n : n);
+      return (d.getMonth() + 1) + '/' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
+
+    // Dot colour encodes the move this point represents, so a version baseline
+    // and a drawn match both read as neutral grey.
+    const colors = history.map((h, i) => {
+      if (i === 0) return '#9ca3af';
+      const delta = h.rating - history[i - 1].rating;
+      return delta > 0.001 ? '#16a34a' : (delta < -0.001 ? '#dc2626' : '#9ca3af');
+    });
+
+    new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: history.map(h => shortLabel(h.created_at)),
+        datasets: [
+          {
+            label: 'Rating',
+            data: history.map(h => h.rating),
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.08)',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: colors,
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 1,
+            fill: true,
+            tension: 0.25
+          },
+          {
+            label: 'Default 1500',
+            data: history.map(() => 1500),
+            borderColor: '#9ca3af',
+            borderDash: [5, 5],
+            borderWidth: 1,
+            pointRadius: 0,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'nearest', intersect: true },
+        scales: {
+          y: {
+            beginAtZero: false,
+            grace: '10%',
+            title: { display: true, text: 'rating' },
+            grid: { color: 'rgba(0,0,0,0.06)' }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            filter: item => item.datasetIndex === 0,
+            callbacks: {
+              title: items => history[items[0].dataIndex] ? shortLabel(history[items[0].dataIndex].created_at) : '',
+              label: ctx => {
+                const h = history[ctx.dataIndex];
+                const delta = ctx.dataIndex === 0 ? null : h.rating - history[ctx.dataIndex - 1].rating;
+                const move = delta === null ? 'baseline'
+                  : (delta > 0.001 ? '+' + delta.toFixed(1) : (delta < -0.001 ? delta.toFixed(1) : '±0'));
+                return [
+                  'rating ' + h.rating.toFixed(2) + '  (' + move + ')',
+                  'v' + h.version_number + ' · ' + (h.match_id ? 'click to watch the match' : 'version baseline')
+                ];
+              }
+            }
+          }
+        },
+        onHover: (event, elements) => {
+          const hit = elements.length && history[elements[0].index] && history[elements[0].index].match_id;
+          canvas.style.cursor = hit ? 'pointer' : 'default';
+        },
+        onClick: (event, elements) => {
+          if (!elements.length) return;
+          const h = history[elements[0].index];
+          if (h && h.match_id) window.location.href = '/match/' + h.match_id;
+        }
+      }
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}
