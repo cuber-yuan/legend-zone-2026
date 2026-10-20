@@ -1,64 +1,24 @@
-{% extends 'base.html' %}
+{% extends 'components/auth_page.html' %}
+{% set operation = 'register' %}
+{% set heading = 'Register' %}
 
-{% block title %}Register{% endblock %}
-
-{% block content %}
-<div class="max-w-md mx-auto mt-10 bg-white p-8 rounded shadow">
-    <h2 class="text-2xl font-bold mb-6">Register</h2>
-    <form method="post" id="register-form">
-        <div class="mb-4">
-            <label class="block mb-1" for="username">Username</label>
-            <input class="w-full border px-3 py-2 rounded" type="text" name="username" id="username" required minlength="4" autocomplete="off">
-        </div>
-        <div class="mb-4">
-            <label class="block mb-1" for="password">Password</label>
-            <input class="w-full border px-3 py-2 rounded" type="password" name="password" id="password" required minlength="6" autocomplete="off">
-        </div>
-        <div class="mb-6">
-            <label class="block mb-1" for="confirm_password">Confirm Password</label>
-            <input class="w-full border px-3 py-2 rounded" type="password" name="confirm_password" id="confirm_password" required minlength="6" autocomplete="off">
-        </div>
-        <div class="mb-4">
-            <label class="block mb-1" for="email">Email</label>
-            <input class="w-full border px-3 py-2 rounded" type="email" name="email" id="email" required autocomplete="off">
-        </div>
-        <div id="error-message" class="text-red-600 mb-4"></div>
-        <button class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700" type="submit">Register</button>
-    </form>
-</div>
-<script>
-document.getElementById('register-form').onsubmit = function(e) {
-    const username = document.getElementById('username').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const confirm = document.getElementById('confirm_password').value;
-    const errorDiv = document.getElementById('error-message');
-    errorDiv.textContent = '';
-
-    
-    if (username.length < 4) {
-        errorDiv.textContent = 'Username must be at least 4 characters.';
-        e.preventDefault();
-        return false;
-    }
-    
-    if (!/^[\w\.-]+@[\w\.-]+\.\w+$/.test(email)) {
-        errorDiv.textContent = 'Please enter a valid email address.';
-        e.preventDefault();
-        return false;
-    }
-    
-    if (password.length < 8) {
-        errorDiv.textContent = 'Password must be at least 8 characters.';
-        e.preventDefault();
-        return false;
-    }
-    
-    if (password !== confirm) {
-        errorDiv.textContent = 'Passwords do not match.';
-        e.preventDefault();
-        return false;
-    }
-};
-</script>
+{% block auth_fields %}
+    <div class="auth-field">
+        <label for="username">Username</label>
+        <input type="text" name="username" id="username" required minlength="4" maxlength="32" autocomplete="username" autocapitalize="none" spellcheck="false">
+    </div>
+    <div class="auth-field">
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password" required minlength="8" maxlength="256" autocomplete="new-password">
+    </div>
+    <div class="auth-field">
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" name="confirm_password" id="confirm_password" required minlength="8" maxlength="256" autocomplete="new-password">
+    </div>
+    <div class="auth-field">
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" required maxlength="254" autocomplete="email">
+    </div>
 {% endblock %}
+
+{% block auth_switch %}Already have an account? <a href="{{ url_for('auth.login') }}">Login</a>{% endblock %}
