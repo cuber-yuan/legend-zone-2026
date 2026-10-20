@@ -3,9 +3,11 @@ import sqlite3
 from contextlib import closing
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from .bots import list_bots
+from .chat import MAX_HISTORY_HOURS
 from .security import require_admin, require_user
 
 router = APIRouter(prefix="/api")
@@ -29,9 +31,20 @@ def profile(username: str, request: Request):
 
 @router.get("/chat")
 def chat(request: Request):
+    history = chat_history(request)
+    return JSONResponse(
+        history["messages"],
+        headers={
+            "X-Chat-History-Hours": str(history["history_hours"]),
+            "Cache-Control": "no-store",
+        },
+    )
+
+
+def chat_history(request):
     try:
-        return request.app.state.chat.messages()
-    except (OSError, ValueError, KeyError):
+        return request.app.state.chat.history()
+    except (sqlite3.Error, ValueError):
         raise HTTPException(503, "Chat history is temporarily unavailable.")
 
 
@@ -46,8 +59,24 @@ def send(body: Message, request: Request, user=Depends(require_user)):
         raise HTTPException(400, "Write a message first.")
     try:
         return request.app.state.chat.send(user["username"], text)
-    except (OSError, ValueError, KeyError):
+    except (sqlite3.Error, ValueError):
         raise HTTPException(503, "Unable to save the message. Please retry.")
+
+
+class ChatSettings(BaseModel):
+    history_hours: int = Field(ge=1, le=MAX_HISTORY_HOURS, strict=True)
+
+
+@router.get("/admin/chat-settings")
+def chat_settings(request: Request, user=Depends(require_admin)):
+    return request.app.state.chat.settings()
+
+
+@router.post("/admin/chat-settings")
+def update_chat_settings(
+    body: ChatSettings, request: Request, user=Depends(require_admin)
+):
+    return request.app.state.chat.configure(body.history_hours)
 
 
 def admin_connection(request):

@@ -317,7 +317,7 @@ async def auth_form(request: Request):
 @router.get("/chat")
 def chat_page(request: Request):
     return render(
-        request, "chat.html", "main.chat", messages=api_community.chat(request)
+        request, "chat.html", "main.chat", **api_community.chat_history(request)
     )
 
 

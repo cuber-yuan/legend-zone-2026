@@ -95,8 +95,8 @@ def create_app(settings=None):
     settings = settings or Settings.load()
     db = Database(settings.database)
     db.validate()  # Read-only; explicit CLI initialization/import owns schema work.
-    chat = Chat(settings.data_dir / "chat.json")
-    matches = Matches(db, settings, chat)
+    chat = Chat(db)
+    matches = Matches(db, settings)
     process_lock = ProcessLock(settings.data_dir / "server.lock")
 
     @asynccontextmanager

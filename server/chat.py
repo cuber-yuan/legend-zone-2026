@@ -1,87 +1,68 @@
-import json
-import math
-import os
+"""Persistent chat records; expiry only controls the public history window."""
+
 import time
 from datetime import datetime
-from pathlib import Path
-from tempfile import NamedTemporaryFile
-from threading import RLock
+
+MAX_HISTORY_HOURS = 8760
 
 
 class Chat:
-    def __init__(self, path):
-        self.path = Path(path)
-        self.lock = RLock()
+    def __init__(self, db):
+        self.db = db
 
-    def _read(self):
-        if not self.path.exists():
-            return []
-        data = json.loads(self.path.read_text(encoding="utf-8"))
-        if not isinstance(data, dict) or data.get("version") != 1:
-            raise ValueError("Invalid chat file.")
-        messages = data["messages"]
-        if not isinstance(messages, list):
-            raise ValueError("Invalid chat file.")
-        for m in messages:
-            if (
-                not isinstance(m, dict)
-                or not all(isinstance(m.get(k), str) for k in ("user", "text", "time"))
-                or (
-                    type(m.get("created_at")) not in (int, float)
-                    or not math.isfinite(m["created_at"])
+    def settings(self):
+        value = self.db.one("SELECT history_hours FROM chat_settings WHERE singleton=1")
+        if value is None:
+            raise ValueError(
+                "Chat settings are missing. Run the explicit chat upgrade."
+            )
+        return value
+
+    def configure(self, history_hours):
+        if (
+            type(history_hours) is not int
+            or not 1 <= history_hours <= MAX_HISTORY_HOURS
+        ):
+            raise ValueError(
+                f"History hours must be an integer between 1 and {MAX_HISTORY_HOURS}."
+            )
+        with self.db.connect(write=True) as conn:
+            updated = conn.execute(
+                "UPDATE chat_settings SET history_hours=? WHERE singleton=1",
+                (history_hours,),
+            )
+            if updated.rowcount != 1:
+                raise ValueError(
+                    "Chat settings are missing. Run the explicit chat upgrade."
                 )
-            ):
-                raise ValueError("Invalid chat record.")
-        return messages
+        return {"history_hours": history_hours}
 
-    def _write(self, messages):
-        if not messages:
-            self.path.unlink(missing_ok=True)
-            return
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        name = None
-        try:
-            with NamedTemporaryFile(
-                "w",
-                encoding="utf-8",
-                dir=self.path.parent,
-                prefix=".chat-",
-                suffix=".tmp",
-                delete=False,
-            ) as f:
-                name = f.name
-                json.dump({"version": 1, "messages": messages}, f, ensure_ascii=False)
-                f.flush()
-                os.fsync(f.fileno())
-            os.replace(name, self.path)
-        finally:
-            if name and os.path.exists(name):
-                os.unlink(name)
+    @staticmethod
+    def _public(message):
+        return {
+            "user": message["username"],
+            "text": message["text"],
+            "time": datetime.fromtimestamp(message["created_at"]).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
+        }
 
-    def messages(self):
-        with self.lock:
-            original = self._read()
-            messages = [m for m in original if m["created_at"] > time.time() - 86400]
-            if len(messages) != len(original):
-                self._write(messages)
-            return [{k: m[k] for k in ("user", "text", "time")} for m in messages]
+    def history(self):
+        settings = self.settings()
+        cutoff = time.time() - settings["history_hours"] * 3600
+        messages = self.db.all(
+            "SELECT username,text,created_at FROM chat_messages WHERE created_at>? ORDER BY created_at,id",
+            (cutoff,),
+        )
+        return settings | {"messages": [self._public(message) for message in messages]}
 
     def send(self, user, text):
-        with self.lock:
-            now = time.time()
-            messages = [m for m in self._read() if m["created_at"] > now - 86400]
-            msg = {
-                "user": user,
-                "text": text,
-                "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "created_at": now,
-            }
-            self._write(messages + [msg])
-            return {k: msg[k] for k in ("user", "text", "time")}
-
-    def prune(self):
-        self.messages()
-        with self.lock:
-            for path in self.path.parent.glob(".chat-*.tmp"):
-                if path.is_file() and path.stat().st_mtime < time.time() - 86400:
-                    path.unlink(missing_ok=True)
+        if not isinstance(text, str) or not 1 <= len(text.strip()) <= 2000:
+            raise ValueError("Messages must contain 1 to 2000 characters.")
+        message = {"username": user, "text": text.strip(), "created_at": time.time()}
+        with self.db.connect(write=True) as conn:
+            conn.execute(
+                "INSERT INTO chat_messages(username,text,created_at) VALUES (?,?,?)",
+                (message["username"], message["text"], message["created_at"]),
+            )
+        return self._public(message)

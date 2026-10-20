@@ -5,11 +5,11 @@
 .db-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem; padding: 1.25rem 1.5rem .75rem; }
 .db-field { display: flex; flex-direction: column; gap: .35rem; color: #64748b; font-size: .75rem; min-width: 0; }
 .db-field:first-child { flex: 1; max-width: 24rem; }
-.db-field select { border: 1px solid #cbd5e1; border-radius: .5rem; background: white; color: #334155; padding: .5rem; height: 2.4rem; font-size: .875rem; max-width: 100%; }
+.db-field select, .db-field input { border: 1px solid #cbd5e1; border-radius: .5rem; background: white; color: #334155; padding: .5rem; height: 2.4rem; font-size: .875rem; max-width: 100%; min-width: 0; }
 .db-button { border: 1px solid #bfdbfe; border-radius: .5rem; background: #eff6ff; color: #1d4ed8; padding: .5rem .75rem; font-size: .8rem; line-height: 1.35rem; }
 .db-button:hover:enabled { background: #dbeafe; border-color: #93c5fd; }
 .db-button:disabled { opacity: .45; cursor: default; }
-.db-button:focus-visible, .admin-tab:focus-visible, .db-field select:focus-visible, .db-grid:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+.db-button:focus-visible, .admin-tab:focus-visible, .db-field select:focus-visible, .db-field input:focus-visible, .db-grid:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
 .db-note { padding: 0 1.5rem .9rem; font-size: .75rem; line-height: 1.5; color: #64748b; }
 .db-status { padding: 2rem 1.5rem; color: #64748b; font-size: .875rem; text-align: center; }
 .db-status[data-error="true"] { color: #b91c1c; }

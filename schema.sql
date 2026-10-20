@@ -45,6 +45,23 @@ CREATE TABLE games (
     CHECK (min_players > 0 AND max_players >= min_players)
 );
 
+CREATE TABLE chat_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    text TEXT NOT NULL CHECK (length(text) BETWEEN 1 AND 2000),
+    created_at REAL NOT NULL
+);
+
+CREATE TABLE chat_settings (
+    singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+    history_hours INTEGER NOT NULL DEFAULT 24
+        CHECK (typeof(history_hours) = 'integer' AND history_hours BETWEEN 1 AND 8760)
+);
+
+INSERT INTO chat_settings(singleton, history_hours) VALUES (1, 24);
+
+CREATE INDEX idx_chat_messages_created ON chat_messages (created_at, id);
+
 CREATE TABLE matches (
     id TEXT PRIMARY KEY,
     game TEXT NOT NULL,

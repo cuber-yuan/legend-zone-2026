@@ -10,6 +10,8 @@
     <div class="admin-tabs" role="tablist" aria-label="Administrator tools">
       <button type="button" id="database-tab" class="admin-tab" role="tab" aria-selected="true"
               aria-controls="database-panel">Database</button>
+      <button type="button" id="chat-tab" class="admin-tab" role="tab" aria-selected="false"
+              aria-controls="chat-panel" tabindex="-1">Chat</button>
     </div>
     <div id="database-panel" role="tabpanel" aria-labelledby="database-tab" tabindex="0"
          data-tables-url="{{ url_for('admin.database_tables') }}"
@@ -36,6 +38,17 @@
           <button type="button" id="db-next" class="db-button" disabled aria-label="Next page">Next</button>
         </div>
       </div>
+    </div>
+    <div id="chat-panel" role="tabpanel" aria-labelledby="chat-tab" tabindex="0" hidden>
+      <form id="chat-settings-form" class="db-toolbar">
+        <label class="db-field" for="chat-history-hours">Visible history (hours)
+          <input id="chat-history-hours" name="history_hours" type="number" min="1" max="8760" step="1" required disabled aria-describedby="chat-settings-note">
+        </label>
+        <button type="submit" id="chat-settings-save" class="db-button" disabled>Save</button>
+        <button type="button" id="chat-settings-refresh" class="db-button">Refresh</button>
+      </form>
+      <p id="chat-settings-note" class="db-note">Choose 1–8760 hours. Expired messages disappear from public chat history but remain in the database. Increasing this window can make older messages visible again.</p>
+      <p id="chat-settings-status" class="db-status" role="status" aria-live="polite">Loading chat settings…</p>
     </div>
   </section>
 </div>

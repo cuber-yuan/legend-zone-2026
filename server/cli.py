@@ -13,7 +13,7 @@ from pathlib import Path
 from werkzeug.security import generate_password_hash
 
 from .config import ROOT
-from .database import Database, initialize
+from .database import Database, initialize, install_chat_schema
 from .util import now
 
 
@@ -105,6 +105,54 @@ def recover(args):
         lock.release()
 
 
+def upgrade_chat(args):
+    if not args.service_stopped:
+        raise ValueError("Stop the service, then pass --service-stopped.")
+    directory = data_path(args.data)
+    db = Database(directory / "legend_zone.db")
+    if not db.path.is_file():
+        raise ValueError(
+            "Database not found. This command never initializes a database."
+        )
+    backup = args.backup.resolve()
+    if backup.is_relative_to(directory):
+        raise ValueError("Choose a database backup file outside the data directory.")
+    from .main import ProcessLock
+
+    lock = ProcessLock(directory / "server.lock")
+    lock.acquire()
+    try:
+        obsolete = [directory / "chat.json", *directory.glob(".chat-*.tmp")]
+        for path in obsolete:
+            if (
+                path.is_symlink()
+                or path.resolve().parent != directory
+                or path.exists()
+                and not path.is_file()
+            ):
+                raise ValueError(
+                    "Refusing to remove a linked or invalid legacy chat path."
+                )
+        backup.parent.mkdir(parents=True, exist_ok=True)
+        # Exclusive creation prevents replacing an existing backup. Do not back up old chat files.
+        with backup.open("xb"):
+            pass
+        with db.connect() as source, closing(sqlite3.connect(backup)) as target:
+            source.backup(target)
+        with db.connect(write=True) as conn:
+            install_chat_schema(conn)
+            db.validate(conn)
+        removed = 0
+        for path in obsolete:
+            if path.exists():
+                path.unlink()
+                removed += 1
+        print(f"Chat schema ready. Database backup: {backup}")
+        print(f"Deleted {removed} legacy chat files without importing their records.")
+    finally:
+        lock.release()
+
+
 def copy_tree(source, destination):
     if not source.exists():
         return
@@ -147,7 +195,9 @@ def import_legacy(args):
             raise ValueError("Invalid temporary database path.")
         shutil.rmtree(source_copy)
         db = Database(stage / "legend_zone.db")
-        db.validate()
+        with db.connect(write=True) as conn:
+            install_chat_schema(conn)
+            db.validate(conn)
         copy_tree(source / "uploads/bots", stage / "bots")
         with db.connect(write=True) as conn:
             rows = conn.execute(
@@ -201,8 +251,6 @@ def import_legacy(args):
                 raise ValueError(
                     "Imported database has invalid foreign key references."
                 )
-        if (source / "data/chat.json").is_file():
-            shutil.copy2(source / "data/chat.json", stage / "chat.json")
         # These are optional runtime headers for existing user C++ bots, not judges.
         if args.bot_headers:
             copy_tree(source / "judges/jsoncpp", stage / "bot-include/jsoncpp")
@@ -237,6 +285,11 @@ def main():
     command = commands.add_parser("recover")
     command.add_argument("--data")
     command.set_defaults(run=recover)
+    command = commands.add_parser("upgrade-chat")
+    command.add_argument("--data")
+    command.add_argument("--backup", type=Path, required=True)
+    command.add_argument("--service-stopped", action="store_true")
+    command.set_defaults(run=upgrade_chat)
     command = commands.add_parser("import-legacy")
     command.add_argument("--source", type=Path, required=True)
     command.add_argument("--data")

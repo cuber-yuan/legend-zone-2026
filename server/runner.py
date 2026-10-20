@@ -50,8 +50,8 @@ class Job:
 
 
 class Matches:
-    def __init__(self, db, settings, chat):
-        self.db, self.settings, self.chat = db, settings, chat
+    def __init__(self, db, settings):
+        self.db, self.settings = db, settings
         self.executor = Executor(settings)
         self.pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="match")
         self.jobs = {}
@@ -337,10 +337,6 @@ class Matches:
         interval = self.settings.auto_interval
         next_auto = time.monotonic() + interval if interval else float("inf")
         while not self.stopping.wait(30):
-            try:
-                self.chat.prune()
-            except Exception:
-                log.exception("Chat cleanup failed")
             try:
                 with self.lock:
                     pending = [

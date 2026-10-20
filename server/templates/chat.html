@@ -7,12 +7,12 @@
 <div class="chat-page">
     <section class="chat-card">
         <div class="chat-note">
-            <p>Chat history is kept for up to 24 hours and expires automatically.</p>
+            <p id="chat-history-note">Chat history is visible for up to {{ history_hours }} {{ 'hour' if history_hours == 1 else 'hours' }} and disappears automatically.</p>
         </div>
         <div class="chat-history-wrap">
         <div id="chat-history" class="chat-history">
             {% for msg in messages %}
-            <div class="chat-message{% if msg.user == current_user.get_id() %} is-own{% endif %}">
+            <div class="chat-message{% if msg.user == current_user.username %} is-own{% endif %}">
                 <div class="chat-message-meta">
                     <span class="chat-message-user">{{ msg.user }}</span>
                     <span class="chat-message-time">{{ msg.time }}</span>
@@ -67,7 +67,7 @@ function isChatAtBottom() {
 function createMessage(msg) {
     const node = document.createElement('div');
     {% if current_user.is_authenticated %}
-    const isOwn = msg.user === {{ current_user.get_id() | tojson }};
+    const isOwn = msg.user === {{ current_user.username | tojson }};
     {% else %}
     const isOwn = false;
     {% endif %}
@@ -118,11 +118,17 @@ function updateMessages(data) {
 function fetchMessages() {
     const sequence = ++requestSequence;
     return platformFetch('{{ url_for("main.chat_messages") }}')
-        .then(response => response.json())
-        .then(data => {
+        .then(async response => {
+            if (!response.ok) throw new Error('Unable to load chat history.');
+            return {data: await response.json(), hours: Number(response.headers.get('X-Chat-History-Hours'))};
+        })
+        .then(({data, hours}) => {
             // A slower earlier request must not replace a newer response.
             if (sequence < appliedSequence) return;
             appliedSequence = sequence;
+            if (Number.isInteger(hours) && hours > 0) {
+                document.getElementById('chat-history-note').textContent = `Chat history is visible for up to ${hours} ${hours === 1 ? 'hour' : 'hours'} and disappears automatically.`;
+            }
             updateMessages(data);
         })
         .catch(() => {}); // Keep the current history visible on a transient polling failure.

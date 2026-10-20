@@ -111,3 +111,78 @@
   }
   initialize();
 })();
+
+(() => {
+  const tabs = Array.from(document.querySelectorAll('.admin-tab'));
+  function select(tab) {
+    tabs.forEach(item => {
+      const selected = item === tab;
+      item.setAttribute('aria-selected', String(selected));
+      item.tabIndex = selected ? 0 : -1;
+      document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
+    });
+  }
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => select(tab));
+    tab.addEventListener('keydown', event => {
+      let next;
+      if (event.key === 'ArrowRight') next = tabs[(index + 1) % tabs.length];
+      if (event.key === 'ArrowLeft') next = tabs[(index + tabs.length - 1) % tabs.length];
+      if (event.key === 'Home') next = tabs[0];
+      if (event.key === 'End') next = tabs.at(-1);
+      if (!next) return;
+      event.preventDefault();
+      select(next);
+      next.focus();
+    });
+  });
+})();
+
+(() => {
+  const form = document.getElementById('chat-settings-form');
+  if (!form) return;
+  const hours = document.getElementById('chat-history-hours');
+  const save = document.getElementById('chat-settings-save');
+  const refresh = document.getElementById('chat-settings-refresh');
+  const status = document.getElementById('chat-settings-status');
+  const endpoint = '/api/admin/chat-settings';
+  let loaded = false;
+  let busy = false;
+
+  async function update(saving = false) {
+    if (busy) return;
+    busy = true;
+    const value = Number(hours.value);
+    hours.disabled = save.disabled = refresh.disabled = true;
+    form.setAttribute('aria-busy', 'true');
+    status.textContent = saving ? 'Saving chat settings…' : 'Loading chat settings…';
+    status.dataset.error = 'false';
+    try {
+      const response = await platformFetch(endpoint, saving ? {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({history_hours: value}),
+      } : {cache: 'no-store'});
+      if (response.redirected) throw new Error('Your session has expired. Please sign in again.');
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Unable to update chat settings. Please try again.');
+      hours.value = data.history_hours;
+      loaded = true;
+      status.textContent = saving ? 'Saved. Public chat history updates on the next refresh.' : '';
+    } catch (error) {
+      status.textContent = error.message;
+      status.dataset.error = 'true';
+    } finally {
+      hours.disabled = save.disabled = !loaded;
+      refresh.disabled = false;
+      busy = false;
+      form.removeAttribute('aria-busy');
+    }
+  }
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    if (form.reportValidity()) update(true);
+  });
+  refresh.addEventListener('click', () => update());
+  update();
+})();
