@@ -268,7 +268,6 @@ socket.on('match_status', data => {
   applyPlayers(data.players);
   if (data.status === 'playing') resetGame(data, true);
   else if (data.status === 'finished') startReplay(data.move_history || [], data.winner, true);
-  else if (data.status === 'not_started') autoStartMatch(data.players);
 });
 socket.on('match_finished', data => {
   if (data.match_id !== settings.matchId) return;
@@ -316,16 +315,7 @@ function startReplay(moves, winner, autoplay = true, error = null) {
   renderHUD();
 }
 
-function autoStartMatch(playersJson) {
-  try {
-    applyPlayers(playersJson); renderHUD();
-    const players = parsePlayers(playersJson);
-    if (players.length < 2 || !players[0] || !players[1]) return;
-    const [p1, p2] = players;
-    socket.emit('new_game', { user_id: userId, black_bot: p1.bot_id || null, white_bot: p2.bot_id || null,
-      black_is_human: p1.type === 'human', white_is_human: p2.type === 'human', match_id: settings.matchId });
-  } catch (error) { console.error('Failed to parse match players:', error); }
-}
+
 
 function sendPlayerMove(column) {
   if (!canPlay() || !Number.isInteger(column) || column < 0 || column >= COLS || board[0][column] !== 0) return;

@@ -454,8 +454,6 @@ socket.on('match_status', (data) => {
         renderCommandPanel();
     } else if (data.status === 'finished') {
         startReplay(data.displays || [], data.winner);
-    } else if (data.status === 'not_started') {
-        autoStartMatch(data.players);
     }
 });
 
@@ -467,33 +465,7 @@ socket.on('match_finished', (data) => {
     startReplay(data.displays || [], data.winner);
 });
 
-// --- Match Page: Auto Start ---
-function autoStartMatch(playersJson) {
-    let players = [];
-    try {
-        const parsed = typeof playersJson === 'string' ? JSON.parse(playersJson) : playersJson;
-        const normalize = (p) => (typeof p === 'string' ? { name: p } : (p || {}));
-        if (Array.isArray(parsed)) {
-            players = parsed.map(normalize);
-        } else if (parsed && typeof parsed === 'object' && parsed.player_1) {
-            players = [normalize(parsed.player_1), normalize(parsed.player_2)];
-        }
-    } catch (e) {
-        console.error('Failed to parse match players:', e);
-        return;
-    }
-    if (players.length < 2) return;
 
-    socket.emit('new_game', {
-        user_id: userId,
-        p1_bot_id: players[0].bot_id || null,
-        p2_bot_id: players[1].bot_id || null,
-        p1_is_human: players[0].type === 'human',
-        p2_is_human: players[1].type === 'human',
-        match_id: MATCH_ID,
-        game_name: (typeof MATCH_GAME_NAME !== 'undefined' && MATCH_GAME_NAME) ? MATCH_GAME_NAME : 'Tank Battle'
-    });
-}
 
 // --- Replay ---
 // Rebuild state at frame index: displays[0] is the initial state, then frames 1..index are applied one by one

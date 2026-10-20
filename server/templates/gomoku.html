@@ -187,8 +187,6 @@ socket.on('match_status', (data) => {
     renderTurnHint();
   } else if (data.status === 'finished') {
     startReplay(data.move_history || [], data.winner);
-  } else if (data.status === 'not_started') {
-    autoStartMatch(data.players);
   }
 });
 
@@ -227,37 +225,7 @@ function startReplay(moves, winner) {
   replayController.play();
 }
 
-function autoStartMatch(playersJson) {
-  let players = [];
-  try {
-    const parsed = typeof playersJson === 'string' ? JSON.parse(playersJson) : playersJson;
-    const normalize = (p) => (typeof p === 'string' ? { name: p } : (p || {}));
-    if (Array.isArray(parsed)) {
-      players = parsed.map(normalize);
-    } else if (parsed && typeof parsed === 'object' && parsed.player_1) {
-      players = [normalize(parsed.player_1), normalize(parsed.player_2)];
-    }
-  } catch (e) {
-    console.error('Failed to parse match players:', e);
-    return;
-  }
 
-  if (players.length < 2) return;
-
-  // showPhaserMask('Starting match...');
-
-  const p1 = players[0];
-  const p2 = players[1];
-
-  socket.emit('new_game', {
-    user_id: userId,
-    black_bot: p1.bot_id || null,
-    white_bot: p2.bot_id || null,
-    black_is_human: p1.type === 'human',
-    white_is_human: p2.type === 'human',
-    match_id: MATCH_ID
-  });
-}
 
 
 function sendPlayerMove(x, y) {

@@ -1,7 +1,7 @@
 """Persistent chat records; expiry only controls the public history window."""
 
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 MAX_HISTORY_HOURS = 8760
 
@@ -13,9 +13,7 @@ class Chat:
     def settings(self):
         value = self.db.one("SELECT history_hours FROM chat_settings WHERE singleton=1")
         if value is None:
-            raise ValueError(
-                "Chat settings are missing. Run the explicit chat upgrade."
-            )
+            raise ValueError("Chat settings are missing. Contact the administrator.")
         return value
 
     def configure(self, history_hours):
@@ -33,7 +31,7 @@ class Chat:
             )
             if updated.rowcount != 1:
                 raise ValueError(
-                    "Chat settings are missing. Run the explicit chat upgrade."
+                    "Chat settings are missing. Contact the administrator."
                 )
         return {"history_hours": history_hours}
 
@@ -42,9 +40,9 @@ class Chat:
         return {
             "user": message["username"],
             "text": message["text"],
-            "time": datetime.fromtimestamp(message["created_at"]).strftime(
-                "%Y-%m-%d %H:%M:%S"
-            ),
+            "time": datetime.fromtimestamp(message["created_at"], timezone.utc)
+            .isoformat(timespec="milliseconds")
+            .replace("+00:00", "Z"),
         }
 
     def history(self):

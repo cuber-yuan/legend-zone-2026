@@ -1,20 +1,13 @@
 // --- Audio Setup ---
-const BGM_ENABLED = false; // Temporarily disable background and game-over music; keep sound effects.
-let bgmAudio = new Audio('/static/snake/assets/snake.m4a');
-bgmAudio.loop = true;
-bgmAudio.volume = 1;
 let moveAudio = new Audio('/static/snake/assets/move.mp3');
 moveAudio.volume = 0.2;
 let explosionAudio = new Audio('/static/snake/assets/explosion.mp3');
 explosionAudio.volume = 0.3;
-let gameoverAudio = new Audio('/static/snake/assets/gameover.m4a');
-gameoverAudio.volume = 1;
 
 // Play a clip, restarting one-shots so repeated replay ticks retrigger them.
 // Swallows the autoplay-policy rejection (resolved after the first user gesture).
 function _tryPlay(audio) {
     if (!audio) return;
-    if (!BGM_ENABLED && (audio === bgmAudio || audio === gameoverAudio)) return;
     if (!audio.loop) audio.currentTime = 0;
     const p = audio.play();
     if (p && p.catch) p.catch(() => {});
@@ -319,7 +312,7 @@ function hidePhaserMask() {
     if (maskText) { maskText.destroy(); maskText = null; }
 }
 
-// --- Socket.IO Event Handlers ---
+// --- Match Event Handlers ---
 socket.on('init', (data) => { userId = data.user_id; });
 
 socket.on('game_started', (data) => {
@@ -334,10 +327,6 @@ socket.on('game_started', (data) => {
         if (fc && canSteer()) {
             fc.classList.remove('hidden');
         }
-        gameoverAudio.pause();
-        gameoverAudio.currentTime = 0;
-        bgmAudio.currentTime = 0;
-        _tryPlay(bgmAudio);
     } else {
         console.error("SnakeScene or its updateFromState method is not available!");
     }
@@ -375,12 +364,7 @@ socket.on('finish', (data) => {
     applySeatTypes(data);
     const fc = document.getElementById('floating-corner');
     if (fc) fc.classList.add('hidden');
-    if (bgmAudio) {
-        bgmAudio.pause();
-        bgmAudio.currentTime = 0;
-    }
     _tryPlay(explosionAudio);
-    _tryPlay(gameoverAudio);
     let winner = data.winner;
     let msg = winner == 0 ? 'Blue wins!' : (winner == 1 ? 'Red wins!' : 'Draw!');
     if (data.error_msg) msg = data.error_msg;
@@ -406,8 +390,6 @@ socket.on('match_status', (data) => {
         }
     } else if (data.status === 'finished') {
         startReplay(data.displays || [], data.winner);
-    } else if (data.status === 'not_started') {
-        autoStartMatch(data.players);
     }
 });
 
@@ -419,33 +401,7 @@ socket.on('match_finished', (data) => {
     startReplay(data.displays || [], data.winner);
 });
 
-// --- Match Page: Auto Start ---
-function autoStartMatch(playersJson) {
-    let players = [];
-    try {
-        const parsed = typeof playersJson === 'string' ? JSON.parse(playersJson) : playersJson;
-        const normalize = (p) => (typeof p === 'string' ? { name: p } : (p || {}));
-        if (Array.isArray(parsed)) {
-            players = parsed.map(normalize);
-        } else if (parsed && typeof parsed === 'object' && parsed.player_1) {
-            players = [normalize(parsed.player_1), normalize(parsed.player_2)];
-        }
-    } catch (e) {
-        console.error('Failed to parse match players:', e);
-        return;
-    }
-    if (players.length < 2) return;
 
-    socket.emit('new_game', {
-        user_id: userId,
-        p1_bot_id: players[0].bot_id || null,
-        p2_bot_id: players[1].bot_id || null,
-        p1_is_human: players[0].type === 'human',
-        p2_is_human: players[1].type === 'human',
-        match_id: MATCH_ID,
-        game_name: (typeof MATCH_GAME_NAME !== 'undefined' && MATCH_GAME_NAME) ? MATCH_GAME_NAME : 'Snake'
-    });
-}
 
 // --- Replay ---
 // Rebuild state at frame index: displays[0] is the initial state, then frames 1..index are applied one by one
@@ -462,12 +418,10 @@ function renderReplayFrame(index) {
         }
     }
 
-    // Mirror the live-match audio: a move each turn, explosion+gameover at the end.
+    // Mirror the live-match sound effects: a move each turn, explosion at the end.
     if (index > 0 && !replayController.demo) _tryPlay(moveAudio);
     if (!replayController.demo && index >= replayDisplays.length - 1 && replayDisplays.length > 1) {
-        if (bgmAudio) { bgmAudio.pause(); bgmAudio.currentTime = 0; }
         _tryPlay(explosionAudio);
-        _tryPlay(gameoverAudio);
     }
 }
 
@@ -483,22 +437,6 @@ function startReplay(displays, winner) {
     const fc = document.getElementById('floating-corner');
     if (fc) fc.classList.add('hidden');
 
-
-    // Start BGM; browsers block autoplay without a gesture, so arm a one-time
-    // unlock that resumes it on the first click/keypress.
-    if (bgmAudio && !replayController.demo) {
-        gameoverAudio.pause();
-        gameoverAudio.currentTime = 0;
-        bgmAudio.currentTime = 0;
-        _tryPlay(bgmAudio);
-        const unlock = () => {
-            if (isReplayMode && bgmAudio.paused) _tryPlay(bgmAudio);
-            document.removeEventListener('pointerdown', unlock);
-            document.removeEventListener('keydown', unlock);
-        };
-        document.addEventListener('pointerdown', unlock);
-        document.addEventListener('keydown', unlock);
-    }
 
     let msg = winner == 0 ? 'Blue wins!' : (winner == 1 ? 'Red wins!' : 'Draw!');
     replayController.load(Math.max(0, displays.length - 1));
@@ -563,10 +501,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Preload audio files for caching
     const audioFiles = [
-        '/static/snake/assets/snake.m4a',
         '/static/snake/assets/move.mp3',
-        '/static/snake/assets/explosion.mp3',
-        '/static/snake/assets/gameover.m4a'
+        '/static/snake/assets/explosion.mp3'
     ];
     audioFiles.forEach(url => {
         platformFetch(url, { method: 'GET', cache: 'force-cache' }).catch(() => {});

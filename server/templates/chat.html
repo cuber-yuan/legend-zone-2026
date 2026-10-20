@@ -15,7 +15,7 @@
             <div class="chat-message{% if msg.user == current_user.username %} is-own{% endif %}">
                 <div class="chat-message-meta">
                     <span class="chat-message-user">{{ msg.user }}</span>
-                    <span class="chat-message-time">{{ msg.time }}</span>
+                    <span class="chat-message-time" data-utc="{{ msg.time }}" data-utc-seconds>{{ msg.time }}</span>
                 </div>
                 <div class="chat-message-text">{{ msg.text }}</div>
             </div>
@@ -55,7 +55,7 @@ const messageKey = msg => JSON.stringify([msg.user, msg.text, msg.time]);
 let messageKeys = Array.from(chatHistory.children, node => messageKey({
     user: node.querySelector('.chat-message-user').textContent,
     text: node.querySelector('.chat-message-text').textContent,
-    time: node.querySelector('.chat-message-time').textContent
+    time: node.querySelector('.chat-message-time').dataset.utc
 }));
 let requestSequence = 0;
 let appliedSequence = 0;
@@ -72,7 +72,7 @@ function createMessage(msg) {
     const isOwn = false;
     {% endif %}
     node.className = 'chat-message' + (isOwn ? ' is-own' : '');
-    node.innerHTML = `<div class="chat-message-meta"><span class="chat-message-user">${escapeHtml(msg.user)}</span><span class="chat-message-time">${escapeHtml(msg.time)}</span></div><div class="chat-message-text">${escapeHtml(msg.text)}</div>`;
+    node.innerHTML = `<div class="chat-message-meta"><span class="chat-message-user">${escapeHtml(msg.user)}</span><span class="chat-message-time" data-utc="${escapeHtml(msg.time)}" data-utc-seconds>${escapeHtml(fmtLocal(msg.time, true))}</span></div><div class="chat-message-text">${escapeHtml(msg.text)}</div>`;
     return node;
 }
 

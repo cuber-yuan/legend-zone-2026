@@ -1,5 +1,5 @@
 import sqlite3
-from contextlib import closing, contextmanager, nullcontext
+from contextlib import closing, contextmanager
 from pathlib import Path
 
 from .config import ROOT
@@ -34,7 +34,7 @@ class Database:
         rows = self.all(sql, params)
         return rows[0] if rows else None
 
-    def validate(self, connection=None):
+    def validate(self):
         with closing(sqlite3.connect(":memory:")) as expected:
             expected.executescript((ROOT / "schema.sql").read_text(encoding="utf-8"))
             tables = [
@@ -43,11 +43,7 @@ class Database:
                     "SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%'"
                 )
             ]
-            with (
-                self.connect()
-                if connection is None
-                else nullcontext(connection) as actual
-            ):
+            with self.connect() as actual:
                 for table in tables:
                     required = {
                         row[1]
@@ -58,27 +54,7 @@ class Database:
                         for row in actual.execute(f'PRAGMA table_info("{table}")')
                     }
                     if not required <= present:
-                        raise RuntimeError(
-                            f"Database needs an explicit upgrade: {table}"
-                        )
-
-
-def install_chat_schema(conn):
-    """Install only chat objects from the canonical schema, inside the caller's transaction."""
-    with closing(sqlite3.connect(":memory:")) as expected:
-        expected.executescript((ROOT / "schema.sql").read_text(encoding="utf-8"))
-        objects = expected.execute(
-            "SELECT name,sql FROM sqlite_schema WHERE tbl_name IN ('chat_messages','chat_settings') "
-            "AND sql IS NOT NULL ORDER BY CASE type WHEN 'table' THEN 0 ELSE 1 END"
-        ).fetchall()
-        for name, sql in objects:
-            if not conn.execute(
-                "SELECT 1 FROM sqlite_schema WHERE name=?", (name,)
-            ).fetchone():
-                conn.execute(sql)
-        conn.execute(
-            "INSERT OR IGNORE INTO chat_settings(singleton,history_hours) VALUES (1,24)"
-        )
+                        raise RuntimeError(f"Database schema is incompatible: {table}")
 
 
 def initialize(path):
