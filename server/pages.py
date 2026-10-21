@@ -11,6 +11,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from . import api_auth, api_bots, api_community, bots
 from .config import ROOT
+from .avatars import Avatars
 from .game_state import replay_frames
 from .games import GAMES, get_game
 from .matches import list_matches
@@ -78,6 +79,9 @@ def render(request, template, endpoint="main.home", **context):
         is_authenticated=bool(user),
         is_admin=bool(user and user["role"] == "admin"),
         public=user,
+        avatar_url=Avatars(request.app.state.settings.data_dir).url(user["id"])
+        if user
+        else None,
     )
     context.update(
         current_user=viewer,
@@ -172,6 +176,7 @@ def profile(username: str, request: Request):
         user_not_found=False,
         username=username,
         registered_at=person["created_at"],
+        avatar_url=Avatars(request.app.state.settings.data_dir).url(person["id"]),
         is_owner=bool(user and user["id"] == person["id"]),
     )
 

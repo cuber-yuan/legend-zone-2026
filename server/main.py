@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .api_auth import Attempts
+from .api_account import router as account_router
 from .api_auth import router as auth_router
 from .api_bots import router as bots_router
 from .api_community import router as community_router
@@ -170,6 +171,7 @@ def create_app(settings=None):
 
     for router in (
         auth_router,
+        account_router,
         bots_router,
         matches_router,
         community_router,

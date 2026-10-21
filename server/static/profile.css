@@ -48,6 +48,13 @@
 .profile-field:focus { outline: 2px solid #bfdbfe; border-color: #60a5fa; background: #fff; }
 .profile-account-feedback { color: #0f766e; font-size: .85rem; line-height: 1.5; }
 .profile-account-feedback[data-error="true"] { color: #b91c1c; }
+.profile-settings-section { padding-bottom: 1.25rem; margin-bottom: 1.25rem; border-bottom: 1px solid #e2e8f0; }
+.profile-settings-title { color: #334155; font-size: .95rem; font-weight: 600; margin-bottom: .8rem; }
+.profile-avatar-editor { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.profile-avatar-editor img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; flex: 0 0 auto; }
+.profile-avatar-editor label { flex: 1 1 12rem; min-width: 0; font-size: .85rem; color: #475569; }
+.profile-settings-hint { color: #64748b; font-size: .75rem; line-height: 1.5; margin: .75rem 0; }
+.profile-settings-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; margin-top: .75rem; }
 #sourceCode.profile-field { font-family: ui-monospace,monospace; font-size: 0.75rem; }
 .profile-field::file-selector-button { padding: 0.3rem 0.5rem; margin-right: 0.6rem; border: 0; border-radius: 0.3rem; color: #475569; background: #e2e8f0; font-size: 0.75rem; }
 .profile-button:focus-visible, .profile-icon-button:focus-visible, .profile-modal-close:focus-visible { outline: 2px solid #93c5fd; outline-offset: 3px; }

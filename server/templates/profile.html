@@ -21,7 +21,7 @@
       <!-- avatar on the far left -->
       <div class="profile-avatar">
         <img src="{{ avatar_url or url_for('static', filename='default-avatar.png') }}" alt="avatar"
-             class="profile-avatar-image">
+             class="profile-avatar-image"{% if is_owner %} data-own-avatar{% endif %}>
       </div>
 
       <!-- main info: username, registered date, send message -->
@@ -43,7 +43,7 @@
         </div>
 
         <div class="profile-actions">
-          {% if current_user.is_authenticated and (not username or current_user.get_id() != username) %}
+          {% if current_user.is_authenticated and not is_owner %}
             <a href="#"
                class="profile-button">Send Message</a>
           {% elif not current_user.is_authenticated %}
@@ -167,6 +167,22 @@
       </svg>
     </button>
     <h2 id="account-settings-title" class="profile-modal-title">Account Settings</h2>
+    <form id="account-avatar-form" class="profile-settings-section" data-avatar-url="{{ avatar_url or '' }}">
+      <h3 class="profile-settings-title">Avatar</h3>
+      <div class="profile-avatar-editor">
+        <img id="account-avatar-preview" src="{{ avatar_url or url_for('static', filename='default-avatar.png') }}" alt="Avatar preview">
+        <label for="account-avatar-file">Choose image
+          <input id="account-avatar-file" name="file" type="file" class="profile-field" accept="image/png,image/jpeg,image/webp" aria-describedby="account-avatar-hint">
+        </label>
+      </div>
+      <p id="account-avatar-hint" class="profile-settings-hint">PNG, JPEG or WebP, up to 4 MiB. Still images only, up to 4096 pixels per side and 16 megapixels. Images are cropped to a square.</p>
+      <p id="account-avatar-feedback" class="profile-account-feedback" role="status" aria-live="polite" hidden></p>
+      <div class="profile-settings-actions">
+        <button type="button" id="account-avatar-remove" class="profile-button"{% if not avatar_url %} disabled{% endif %}>Restore Default</button>
+        <button type="submit" id="account-avatar-save" class="profile-button primary" disabled>Save Avatar</button>
+      </div>
+    </form>
+    <h3 class="profile-settings-title">Password</h3>
     <form id="account-password-form" class="space-y-5">
       <div>
         <label for="current-password" class="block text-sm font-medium text-gray-700">Current Password</label>
@@ -184,7 +200,7 @@
       <p id="account-password-feedback" class="profile-account-feedback" role="status" aria-live="polite" hidden></p>
       <div class="flex justify-end space-x-3">
         <button type="button" id="account-settings-cancel" class="profile-button">Cancel</button>
-        <button type="submit" id="account-password-save" class="profile-button primary">Save Changes</button>
+        <button type="submit" id="account-password-save" class="profile-button primary">Save Password</button>
       </div>
     </form>
   </div>
