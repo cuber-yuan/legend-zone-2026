@@ -15,6 +15,7 @@ from .game_state import snapshot
 from .games import GAMES, create_judge, get_game
 from .matches import create_match, persist_result
 from .trace import Trace
+from .site_settings import SiteSettings
 from .util import now, parse_json
 
 log = logging.getLogger(__name__)
@@ -334,10 +335,16 @@ class Matches:
         self.scheduler.start()
 
     def _schedule(self):
-        interval = self.settings.auto_interval
-        next_auto = time.monotonic() + interval if interval else float("inf")
-        while not self.stopping.wait(30):
+        interval = None
+        next_auto = float("inf")
+        site_settings = SiteSettings(self.db)
+        while not self.stopping.is_set():
             try:
+                configured_interval = site_settings.read()["ladder_interval_seconds"]
+                now = time.monotonic()
+                if configured_interval != interval:
+                    interval = configured_interval
+                    next_auto = now + interval if interval else float("inf")
                 with self.lock:
                     pending = [
                         job
@@ -346,8 +353,8 @@ class Matches:
                     ]
                 for job in pending:
                     self._save(job)
-                if time.monotonic() >= next_auto:
-                    next_auto = time.monotonic() + interval
+                if interval and now >= next_auto:
+                    next_auto = now + interval
                     for game in GAMES:
                         bots = list_bots(self.db, game)
                         if len(bots) >= 2:
@@ -361,6 +368,8 @@ class Matches:
                             )
             except Exception:
                 log.exception("Maintenance task failed")
+            if self.stopping.wait(30):
+                break
 
     def close(self):
         self.stopping.set()

@@ -52,13 +52,16 @@ CREATE TABLE chat_messages (
     created_at REAL NOT NULL
 );
 
-CREATE TABLE chat_settings (
+CREATE TABLE site_settings (
     singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
-    history_hours INTEGER NOT NULL DEFAULT 24
-        CHECK (typeof(history_hours) = 'integer' AND history_hours BETWEEN 1 AND 8760)
+    chat_history_hours INTEGER NOT NULL DEFAULT 24
+        CHECK (typeof(chat_history_hours) = 'integer' AND chat_history_hours BETWEEN 1 AND 8760),
+    ladder_interval_seconds INTEGER NOT NULL DEFAULT 1800
+        CHECK (typeof(ladder_interval_seconds) = 'integer'
+            AND ladder_interval_seconds BETWEEN 0 AND 604800 AND ladder_interval_seconds % 60 = 0)
 );
 
-INSERT INTO chat_settings(singleton, history_hours) VALUES (1, 24);
+INSERT INTO site_settings(singleton, chat_history_hours, ladder_interval_seconds) VALUES (1, 24, 1800);
 
 CREATE INDEX idx_chat_messages_created ON chat_messages (created_at, id);
 

@@ -13,7 +13,6 @@ class Settings:
     max_upload: int = 16 * 1024 * 1024
     step_timeout: float = 10
     human_timeout: float = 120
-    auto_interval: float = 1800
 
     @property
     def database(self):
@@ -38,5 +37,4 @@ class Settings:
             data,
             secret,
             os.environ.get("LEGEND_SECURE_COOKIE", "0") == "1",
-            auto_interval=max(0, float(os.environ.get("LEGEND_AUTO_INTERVAL", "1800"))),
         )

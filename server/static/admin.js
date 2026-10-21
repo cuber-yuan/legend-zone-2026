@@ -139,13 +139,14 @@
 })();
 
 (() => {
-  const form = document.getElementById('chat-settings-form');
+  const form = document.getElementById('site-settings-form');
   if (!form) return;
   const hours = document.getElementById('chat-history-hours');
-  const save = document.getElementById('chat-settings-save');
-  const refresh = document.getElementById('chat-settings-refresh');
-  const status = document.getElementById('chat-settings-status');
-  const endpoint = '/api/admin/chat-settings';
+  const ladder = document.getElementById('ladder-interval-minutes');
+  const save = document.getElementById('site-settings-save');
+  const refresh = document.getElementById('site-settings-refresh');
+  const status = document.getElementById('site-settings-status');
+  const endpoint = '/api/admin/settings';
   let loaded = false;
   let busy = false;
 
@@ -153,27 +154,29 @@
     if (busy) return;
     busy = true;
     const value = Number(hours.value);
-    hours.disabled = save.disabled = refresh.disabled = true;
+    const seconds = Number(ladder.value) * 60;
+    hours.disabled = ladder.disabled = save.disabled = refresh.disabled = true;
     form.setAttribute('aria-busy', 'true');
-    status.textContent = saving ? 'Saving chat settings…' : 'Loading chat settings…';
+    status.textContent = saving ? 'Saving site settings…' : 'Loading site settings…';
     status.dataset.error = 'false';
     try {
       const response = await platformFetch(endpoint, saving ? {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({history_hours: value}),
+        body: JSON.stringify({chat_history_hours: value, ladder_interval_seconds: seconds}),
       } : {cache: 'no-store'});
       if (response.redirected) throw new Error('Your session has expired. Please sign in again.');
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Unable to update chat settings. Please try again.');
-      hours.value = data.history_hours;
+      if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Unable to update site settings. Please try again.');
+      hours.value = data.chat_history_hours;
+      ladder.value = data.ladder_interval_seconds / 60;
       loaded = true;
-      status.textContent = saving ? 'Saved. Public chat history updates on the next refresh.' : '';
+      status.textContent = saving ? 'Saved. Settings take effect within 30 seconds.' : '';
     } catch (error) {
       status.textContent = error.message;
       status.dataset.error = 'true';
     } finally {
-      hours.disabled = save.disabled = !loaded;
+      hours.disabled = ladder.disabled = save.disabled = !loaded;
       refresh.disabled = false;
       busy = false;
       form.removeAttribute('aria-busy');

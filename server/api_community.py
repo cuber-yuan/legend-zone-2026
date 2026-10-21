@@ -7,8 +7,12 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from .bots import list_bots
-from .chat import MAX_HISTORY_HOURS
 from .security import require_admin, require_user
+from .site_settings import (
+    MAX_CHAT_HISTORY_HOURS,
+    MAX_LADDER_INTERVAL_SECONDS,
+    SiteSettings,
+)
 
 router = APIRouter(prefix="/api")
 
@@ -63,20 +67,25 @@ def send(body: Message, request: Request, user=Depends(require_user)):
         raise HTTPException(503, "Unable to save the message. Please retry.")
 
 
-class ChatSettings(BaseModel):
-    history_hours: int = Field(ge=1, le=MAX_HISTORY_HOURS, strict=True)
+class SiteSettingsUpdate(BaseModel):
+    chat_history_hours: int = Field(ge=1, le=MAX_CHAT_HISTORY_HOURS, strict=True)
+    ladder_interval_seconds: int = Field(
+        ge=0, le=MAX_LADDER_INTERVAL_SECONDS, multiple_of=60, strict=True
+    )
 
 
-@router.get("/admin/chat-settings")
-def chat_settings(request: Request, user=Depends(require_admin)):
-    return request.app.state.chat.settings()
+@router.get("/admin/settings")
+def site_settings(request: Request, user=Depends(require_admin)):
+    return SiteSettings(request.app.state.db).read()
 
 
-@router.post("/admin/chat-settings")
-def update_chat_settings(
-    body: ChatSettings, request: Request, user=Depends(require_admin)
+@router.post("/admin/settings")
+def update_site_settings(
+    body: SiteSettingsUpdate, request: Request, user=Depends(require_admin)
 ):
-    return request.app.state.chat.configure(body.history_hours)
+    return SiteSettings(request.app.state.db).update(
+        body.chat_history_hours, body.ladder_interval_seconds
+    )
 
 
 def admin_connection(request):

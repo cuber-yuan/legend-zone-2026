@@ -10,8 +10,8 @@
     <div class="admin-tabs" role="tablist" aria-label="Administrator tools">
       <button type="button" id="database-tab" class="admin-tab" role="tab" aria-selected="true"
               aria-controls="database-panel">Database</button>
-      <button type="button" id="chat-tab" class="admin-tab" role="tab" aria-selected="false"
-              aria-controls="chat-panel" tabindex="-1">Chat</button>
+      <button type="button" id="settings-tab" class="admin-tab" role="tab" aria-selected="false"
+              aria-controls="settings-panel" tabindex="-1">Settings</button>
     </div>
     <div id="database-panel" role="tabpanel" aria-labelledby="database-tab" tabindex="0"
          data-tables-url="{{ url_for('admin.database_tables') }}"
@@ -39,16 +39,19 @@
         </div>
       </div>
     </div>
-    <div id="chat-panel" role="tabpanel" aria-labelledby="chat-tab" tabindex="0" hidden>
-      <form id="chat-settings-form" class="db-toolbar">
-        <label class="db-field" for="chat-history-hours">Visible history (hours)
-          <input id="chat-history-hours" name="history_hours" type="number" min="1" max="8760" step="1" required disabled aria-describedby="chat-settings-note">
+    <div id="settings-panel" role="tabpanel" aria-labelledby="settings-tab" tabindex="0" hidden>
+      <form id="site-settings-form" class="db-toolbar site-settings-form">
+        <label class="db-field" for="chat-history-hours">Chat history (hours)
+          <input id="chat-history-hours" name="chat_history_hours" type="number" min="1" max="8760" step="1" required disabled aria-describedby="site-settings-note">
         </label>
-        <button type="submit" id="chat-settings-save" class="db-button" disabled>Save</button>
-        <button type="button" id="chat-settings-refresh" class="db-button">Refresh</button>
+        <label class="db-field" for="ladder-interval-minutes">Automatic ladder interval (minutes)
+          <input id="ladder-interval-minutes" name="ladder_interval_minutes" type="number" min="0" max="10080" step="1" required disabled aria-describedby="site-settings-note">
+        </label>
+        <button type="submit" id="site-settings-save" class="db-button" disabled>Save</button>
+        <button type="button" id="site-settings-refresh" class="db-button">Refresh</button>
       </form>
-      <p id="chat-settings-note" class="db-note">Choose 1–8760 hours. Expired messages disappear from public chat history but remain in the database. Increasing this window can make older messages visible again.</p>
-      <p id="chat-settings-status" class="db-status" role="status" aria-live="polite">Loading chat settings…</p>
+      <p id="site-settings-note" class="db-note">Chat history: 1–8760 hours; expired messages remain in the database. Automatic ladder: 0–10080 minutes; 0 disables it. Settings apply within 30 seconds. Changing the ladder interval starts a new countdown and leaves running matches active.</p>
+      <p id="site-settings-status" class="db-status" role="status" aria-live="polite">Loading site settings…</p>
     </div>
   </section>
 </div>

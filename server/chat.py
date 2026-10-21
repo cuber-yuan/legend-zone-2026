@@ -3,37 +3,13 @@
 import time
 from datetime import datetime, timezone
 
-MAX_HISTORY_HOURS = 8760
+from .site_settings import SiteSettings
 
 
 class Chat:
     def __init__(self, db):
         self.db = db
-
-    def settings(self):
-        value = self.db.one("SELECT history_hours FROM chat_settings WHERE singleton=1")
-        if value is None:
-            raise ValueError("Chat settings are missing. Contact the administrator.")
-        return value
-
-    def configure(self, history_hours):
-        if (
-            type(history_hours) is not int
-            or not 1 <= history_hours <= MAX_HISTORY_HOURS
-        ):
-            raise ValueError(
-                f"History hours must be an integer between 1 and {MAX_HISTORY_HOURS}."
-            )
-        with self.db.connect(write=True) as conn:
-            updated = conn.execute(
-                "UPDATE chat_settings SET history_hours=? WHERE singleton=1",
-                (history_hours,),
-            )
-            if updated.rowcount != 1:
-                raise ValueError(
-                    "Chat settings are missing. Contact the administrator."
-                )
-        return {"history_hours": history_hours}
+        self.site_settings = SiteSettings(db)
 
     @staticmethod
     def _public(message):
@@ -46,13 +22,16 @@ class Chat:
         }
 
     def history(self):
-        settings = self.settings()
-        cutoff = time.time() - settings["history_hours"] * 3600
+        hours = self.site_settings.read()["chat_history_hours"]
+        cutoff = time.time() - hours * 3600
         messages = self.db.all(
             "SELECT username,text,created_at FROM chat_messages WHERE created_at>? ORDER BY created_at,id",
             (cutoff,),
         )
-        return settings | {"messages": [self._public(message) for message in messages]}
+        return {
+            "history_hours": hours,
+            "messages": [self._public(message) for message in messages],
+        }
 
     def send(self, user, text):
         if not isinstance(text, str) or not 1 <= len(text.strip()) <= 2000:
