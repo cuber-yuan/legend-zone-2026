@@ -1,4 +1,97 @@
 (() => {
+  const form = document.getElementById('bot-queue-form');
+  if (!form) return;
+  const botId = document.getElementById('queue-bot-id');
+  const count = document.getElementById('queue-match-count');
+  const check = document.getElementById('queue-check-bot');
+  const submit = document.getElementById('queue-submit');
+  const refresh = document.getElementById('queue-refresh');
+  const info = document.getElementById('queue-bot-info');
+  const status = document.getElementById('queue-status');
+  const rows = document.getElementById('queue-batches');
+  let checked = null, busy = false, loading = false, requestId = null, generation = 0;
+
+  async function request(url, options) {
+    const response = await platformFetch(url, options);
+    if (response.redirected) throw new Error('Your session has expired. Please sign in again.');
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Unable to load the Bot match queue. Please try again.');
+    return data;
+  }
+  function controls() {
+    check.disabled = busy || !botId.value.trim();
+    submit.disabled = busy || !checked || checked.id !== botId.value.trim() || !checked.opponents;
+    botId.disabled = count.disabled = busy;
+  }
+  botId.addEventListener('input', () => {
+    checked = null; requestId = null; generation++;
+    info.textContent = 'Check this Bot ID before queueing matches.';
+    controls();
+  });
+  count.addEventListener('input', () => { requestId = null; });
+  check.addEventListener('click', async () => {
+    const token = ++generation, value = botId.value.trim();
+    checked = null; busy = true; controls();
+    info.textContent = 'Checking Bot…';
+    try {
+      const bot = await request(`/api/admin/bot-queue/bot?bot_id=${encodeURIComponent(value)}`, {cache: 'no-store'});
+      if (token !== generation) return;
+      checked = bot;
+      info.textContent = `${bot.name} — ${bot.game} · latest v${bot.version} · ${bot.opponents} available opponent(s).`;
+      if (!bot.opponents) info.textContent += ' Add another Bot in this game before queueing matches.';
+    } catch (error) { info.textContent = error.message; }
+    finally { busy = false; controls(); }
+  });
+  function detail(cell, text) {
+    const span = document.createElement('span'); span.className = 'queue-detail'; span.textContent = text; cell.append(span);
+  }
+  async function load() {
+    if (loading) return;
+    loading = true; refresh.disabled = true;
+    try {
+      const batches = await request('/api/admin/bot-queue', {cache: 'no-store'});
+      rows.replaceChildren();
+      if (!batches.length) {
+        const row = rows.insertRow(), cell = row.insertCell(); cell.colSpan = 4; cell.textContent = 'No batches in this server session.';
+      }
+      for (const batch of batches) {
+        const row = rows.insertRow(), bot = row.insertCell(), progress = row.insertCell(), state = row.insertCell(), match = row.insertCell();
+        bot.textContent = batch.bot_name; detail(bot, batch.game); detail(bot, batch.bot_id);
+        progress.textContent = `${batch.completed} / ${batch.total}`;
+        detail(progress, `${batch.rated} rated · ${batch.skipped} skipped`);
+        state.textContent = batch.status; if (batch.error) detail(state, batch.error);
+        const id = batch.current_match || batch.last_match;
+        if (id) { const link = document.createElement('a'); link.href = `/match/${encodeURIComponent(id)}`; link.textContent = batch.current_match ? 'Current match' : 'Last match'; match.append(link); }
+        else match.textContent = '—';
+      }
+    } catch (error) { status.textContent = error.message; status.dataset.error = 'true'; }
+    finally { loading = false; refresh.disabled = false; }
+  }
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (busy || submit.disabled || !form.reportValidity()) return;
+    // Reuse the ID after a lost response so retrying cannot enqueue 100 matches twice.
+    requestId ||= (globalThis.crypto?.randomUUID?.() || `batch-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    const body = {bot_id: checked.id, count: Number(count.value), request_id: requestId};
+    busy = true; controls(); status.textContent = 'Queueing matches…'; status.dataset.error = 'false';
+    try {
+      const batch = await request('/api/admin/bot-queue', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+      status.textContent = `Queued ${batch.total} matches for ${batch.bot_name} (${batch.game}).`;
+      requestId = null;
+      await load();
+    } catch (error) { status.textContent = error.message; status.dataset.error = 'true'; }
+    finally { busy = false; controls(); }
+  });
+  refresh.addEventListener('click', load);
+  document.getElementById('bot-queue-tab').addEventListener('click', load);
+  const timer = setInterval(() => {
+    if (!document.hidden && !document.getElementById('bot-queue-panel').hidden) load();
+  }, 2000);
+  window.addEventListener('pagehide', () => clearInterval(timer));
+  controls();
+})();
+
+(() => {
   const forms = Array.from(document.querySelectorAll('.danger-form'));
   let busy = false;
   function synchronize(form) {

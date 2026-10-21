@@ -17,6 +17,11 @@ def perform(matches, game_value, action, confirmation):
     # Creation uses this same lock. Existing workers remain visible in jobs until
     # result, rating and trace finalization have all completed.
     with matches.lock, matches.db.connect(write=True) as conn:
+        queue = getattr(matches, "bot_queue", None)
+        if queue and queue.has_pending(game.name):
+            raise OperationConflict(
+                "This game has queued Bot batches. Wait for them to finish."
+            )
         rows = conn.execute(
             "SELECT id,status,rating_status FROM matches WHERE game=?", (game.name,)
         ).fetchall()

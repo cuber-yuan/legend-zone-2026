@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from threading import Condition, Event, Lock, Thread
 
 from .bots import list_bots, selected_version
+from .bot_queue import BotMatchQueue, MatchCapacityError
 from .execution import Execution, Executor
 from .game_state import snapshot
 from .games import GAMES, create_judge, get_game
@@ -59,6 +60,7 @@ class Matches:
         self.lock = Lock()
         self.stopping = Event()
         self.scheduler = None
+        self.bot_queue = BotMatchQueue(self)
 
     def create(self, game, players, user=None):
         with self.lock:
@@ -69,7 +71,7 @@ class Matches:
                 or user
                 and sum(job.owner == user["id"] for job in self.jobs.values()) >= 4
             ):
-                raise ValueError("Too many pending matches. Please wait.")
+                raise MatchCapacityError("Too many pending matches. Please wait.")
             match_id = create_match(self.db, game, players, user)
             job = Job(match_id, user["id"] if user else None)
             self.jobs[match_id] = job
@@ -331,6 +333,7 @@ class Matches:
             self.jobs.pop(job.id, None)
 
     def start(self):
+        self.bot_queue.start()
         self.scheduler = Thread(target=self._schedule, name="maintenance", daemon=True)
         self.scheduler.start()
 
@@ -373,6 +376,7 @@ class Matches:
 
     def close(self):
         self.stopping.set()
+        self.bot_queue.close()
         with self.lock:
             jobs = list(self.jobs.values())
         for job in jobs:

@@ -14,6 +14,8 @@
               aria-controls="settings-panel" tabindex="-1">Settings</button>
       <button type="button" id="danger-tab" class="admin-tab" role="tab" aria-selected="false"
               aria-controls="danger-panel" tabindex="-1">Dangerous Operations</button>
+      <button type="button" id="bot-queue-tab" class="admin-tab" role="tab" aria-selected="false"
+              aria-controls="bot-queue-panel" tabindex="-1">Bot Match Queue</button>
     </div>
     <div id="database-panel" role="tabpanel" aria-labelledby="database-tab" tabindex="0"
          data-tables-url="{{ url_for('admin.database_tables') }}"
@@ -55,6 +57,28 @@
       <p id="site-settings-note" class="db-note">Chat history: 1–8760 hours; expired messages remain in the database. Automatic ladder: 0–10080 minutes; 0 disables it. Settings apply within 30 seconds. Changing the ladder interval starts a new countdown and leaves running matches active.</p>
       <p id="site-settings-status" class="db-status" role="status" aria-live="polite">Loading site settings…</p>
     </div>
+    <div id="bot-queue-panel" role="tabpanel" aria-labelledby="bot-queue-tab" tabindex="0" hidden>
+      <form id="bot-queue-form" class="db-toolbar">
+        <label class="db-field" for="queue-bot-id">Bot ID
+          <input id="queue-bot-id" name="bot_id" type="text" maxlength="100" required autocomplete="off" aria-describedby="queue-bot-info">
+        </label>
+        <button type="button" id="queue-check-bot" class="db-button">Check Bot</button>
+        <label class="db-field" for="queue-match-count">Matches
+          <input id="queue-match-count" name="count" type="number" min="1" max="100" step="1" value="1" required>
+        </label>
+        <button type="submit" id="queue-submit" class="db-button" disabled>Queue Matches</button>
+      </form>
+      <p id="queue-bot-info" class="db-note" role="status" aria-live="polite">Enter a Bot ID and check its game before queueing matches.</p>
+      <p class="db-note">Each match randomly selects another Bot in the same game; opponents may repeat and seats are randomized. Matches run one at a time using the latest versions and normal rating rules. Up to 100 matches per batch and 10 active batches. The queue survives page refreshes but is discarded when the server restarts.</p>
+      <p id="queue-status" class="db-status" role="status" aria-live="polite"></p>
+      <div class="db-toolbar"><button type="button" id="queue-refresh" class="db-button">Refresh Queue</button></div>
+      <div class="db-grid" role="region" aria-label="Bot match batches" tabindex="0">
+        <table class="db-table">
+          <thead><tr><th>Bot / Game</th><th>Progress</th><th>Status</th><th>Match</th></tr></thead>
+          <tbody id="queue-batches"></tbody>
+        </table>
+      </div>
+    </div>
     <div id="danger-panel" role="tabpanel" aria-labelledby="danger-tab" tabindex="0" hidden>
       {% for action, title, phrase, description in [
         ('clear-matches', 'Clear match records', 'CLEAR MATCHES', 'Permanently delete all matches, replays and Debug records for this game. Current ratings and rating history are retained; replay links are removed.'),
@@ -80,7 +104,7 @@
         <p class="db-status" role="status" aria-live="polite"></p>
       </form>
       {% endfor %}
-      <p class="db-note">Operations are blocked while this game has active or unsaved matches. Rating resets also require all ratings to be settled.</p>
+      <p class="db-note">Operations are blocked while this game has active or unsaved matches, or queued Bot batches. Rating resets also require all ratings to be settled.</p>
     </div>
   </section>
 </div>

@@ -14,6 +14,11 @@
 .db-field { display: flex; flex-direction: column; gap: .35rem; color: #64748b; font-size: .75rem; min-width: 0; }
 .db-field:first-child { flex: 1; max-width: 24rem; }
 .site-settings-form .db-field { flex: 1 1 14rem; max-width: 24rem; }
+#bot-queue-form .db-field:first-child { flex: 1 1 20rem; }
+#bot-queue-form .db-field:last-of-type { flex: 0 1 7rem; }
+#queue-status:empty { display: none; }
+#bot-queue-panel .db-table { min-width: 40rem; }
+.queue-detail { display: block; color: #64748b; margin-top: .3rem; overflow-wrap: anywhere; }
 .db-field select, .db-field input { border: 1px solid #cbd5e1; border-radius: .5rem; background: white; color: #334155; padding: .5rem; height: 2.4rem; font-size: .875rem; max-width: 100%; min-width: 0; }
 .db-button { border: 1px solid #bfdbfe; border-radius: .5rem; background: #eff6ff; color: #1d4ed8; padding: .5rem .75rem; font-size: .8rem; line-height: 1.35rem; }
 .db-button:hover:enabled { background: #dbeafe; border-color: #93c5fd; }

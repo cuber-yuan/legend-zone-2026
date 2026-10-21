@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from .bots import list_bots
 from .admin_operations import OperationConflict, perform
+from .bot_queue import QueueConflict
 from .security import require_admin, require_user
 from .site_settings import (
     MAX_CHAT_HISTORY_HOURS,
@@ -101,6 +102,38 @@ def dangerous_operation(
     try:
         return perform(request.app.state.matches, body.game, action, body.confirmation)
     except OperationConflict as error:
+        raise HTTPException(409, str(error))
+
+
+class BotBatchRequest(BaseModel):
+    bot_id: str = Field(min_length=1, max_length=100)
+    count: int = Field(ge=1, le=100, strict=True)
+    request_id: str = Field(min_length=8, max_length=80, pattern=r"^[a-zA-Z0-9-]+$")
+
+
+@router.get("/admin/bot-queue/bot")
+def batch_bot(
+    request: Request,
+    bot_id: str = Query(min_length=1, max_length=100),
+    user=Depends(require_admin),
+):
+    return request.app.state.matches.bot_queue.lookup(bot_id)
+
+
+@router.get("/admin/bot-queue")
+def batch_listing(request: Request, user=Depends(require_admin)):
+    return request.app.state.matches.bot_queue.listing()
+
+
+@router.post("/admin/bot-queue")
+def enqueue_bot_batch(
+    body: BotBatchRequest, request: Request, user=Depends(require_admin)
+):
+    try:
+        return request.app.state.matches.bot_queue.enqueue(
+            body.bot_id, body.count, body.request_id
+        )
+    except QueueConflict as error:
         raise HTTPException(409, str(error))
 
 
