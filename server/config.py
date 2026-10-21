@@ -11,7 +11,7 @@ class Settings:
     secret_key: str
     secure_cookie: bool = False
     max_upload: int = 16 * 1024 * 1024
-    step_timeout: float = 10
+    step_timeout: float = 1
     human_timeout: float = 120
 
     @property
