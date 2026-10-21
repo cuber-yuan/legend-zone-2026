@@ -12,7 +12,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from . import api_auth, api_bots, api_community, bots
 from .config import ROOT
 from .game_state import replay_frames
-from .games import get_game
+from .games import GAMES, get_game
 from .matches import list_matches
 from .security import can_read_source, current_user, require_admin, require_user
 from .util import parse_json
@@ -342,7 +342,7 @@ async def chat_send(request: Request, user=Depends(require_user)):
 
 @router.get("/admin")
 def admin(request: Request, user=Depends(require_admin)):
-    return render(request, "admin.html", "admin.console")
+    return render(request, "admin.html", "admin.console", games=GAMES.values())
 
 
 @router.get("/admin/database/tables")

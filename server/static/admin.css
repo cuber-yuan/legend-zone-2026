@@ -2,6 +2,14 @@
 .admin-tab { padding: .9rem 1.5rem; font-size: .875rem; font-weight: 600; border-bottom: 2px solid transparent; color: #64748b; }
 .admin-tab[aria-selected="true"] { color: #1d4ed8; border-bottom-color: #3b82f6; }
 .admin-tab:hover { background: #f8fafc; }
+.admin-tab { white-space: nowrap; }
+.danger-form { padding-top: 1.25rem; }
+.danger-form + .danger-form { border-top: 1px solid #e2e8f0; }
+.danger-form h2 { padding: 0 1.5rem .75rem; font-size: 1rem; font-weight: 600; color: #b91c1c; }
+.danger-form .db-field, .danger-form .db-field:first-child { flex: 1 1 14rem; max-width: 24rem; }
+.danger-form .db-status:empty { display: none; }
+.danger-form .danger-button { color: #b91c1c; background: #fef2f2; border-color: #fecaca; }
+.danger-form .danger-button:hover:enabled { background: #fee2e2; border-color: #fca5a5; }
 .db-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem; padding: 1.25rem 1.5rem .75rem; }
 .db-field { display: flex; flex-direction: column; gap: .35rem; color: #64748b; font-size: .75rem; min-width: 0; }
 .db-field:first-child { flex: 1; max-width: 24rem; }
@@ -27,6 +35,7 @@
 .db-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding: 1rem 1.5rem; color: #64748b; font-size: .75rem; }
 .db-pagination { display: flex; align-items: center; gap: .6rem; }
 @media (max-width: 640px) {
+  .danger-form h2 { padding-inline: .75rem; }
   .db-toolbar { padding: 1rem .75rem .75rem; gap: .5rem; }
   .db-note { padding-inline: .75rem; }
   .db-footer { padding: .75rem; }

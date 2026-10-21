@@ -12,6 +12,8 @@
               aria-controls="database-panel">Database</button>
       <button type="button" id="settings-tab" class="admin-tab" role="tab" aria-selected="false"
               aria-controls="settings-panel" tabindex="-1">Settings</button>
+      <button type="button" id="danger-tab" class="admin-tab" role="tab" aria-selected="false"
+              aria-controls="danger-panel" tabindex="-1">Dangerous Operations</button>
     </div>
     <div id="database-panel" role="tabpanel" aria-labelledby="database-tab" tabindex="0"
          data-tables-url="{{ url_for('admin.database_tables') }}"
@@ -52,6 +54,33 @@
       </form>
       <p id="site-settings-note" class="db-note">Chat history: 1–8760 hours; expired messages remain in the database. Automatic ladder: 0–10080 minutes; 0 disables it. Settings apply within 30 seconds. Changing the ladder interval starts a new countdown and leaves running matches active.</p>
       <p id="site-settings-status" class="db-status" role="status" aria-live="polite">Loading site settings…</p>
+    </div>
+    <div id="danger-panel" role="tabpanel" aria-labelledby="danger-tab" tabindex="0" hidden>
+      {% for action, title, phrase, description in [
+        ('clear-matches', 'Clear match records', 'CLEAR MATCHES', 'Permanently delete all matches, replays and Debug records for this game. Current ratings and rating history are retained; replay links are removed.'),
+        ('reset-ratings', 'Reset Bot ratings', 'RESET RATINGS', 'Reset every Bot version in this game to 1500. Previous rating history is deleted and replaced with a new baseline. Match records are retained.')
+      ] %}
+      <form class="danger-form" data-action="{{ action }}" data-phrase="{{ phrase }}">
+        <h2>{{ title }}</h2>
+        <p class="db-note">{{ description }} This cannot be undone.</p>
+        <div class="db-toolbar">
+          <label class="db-field" for="{{ action }}-game">Game
+            <select id="{{ action }}-game" name="game" required aria-label="Game">
+              <option value="">Select a game</option>
+              {% for game in games %}<option value="{{ game.name }}">{{ game.name }}</option>{% endfor %}
+            </select>
+          </label>
+          <label class="db-field" for="{{ action }}-confirmation">Confirmation text
+            <input id="{{ action }}-confirmation" name="confirmation" type="text" required autocomplete="off"
+                   spellcheck="false" aria-describedby="{{ action }}-hint">
+          </label>
+          <button type="submit" class="db-button danger-button" disabled>{{ title }}</button>
+        </div>
+        <p id="{{ action }}-hint" class="db-note danger-hint">Select a game to see the required confirmation text.</p>
+        <p class="db-status" role="status" aria-live="polite"></p>
+      </form>
+      {% endfor %}
+      <p class="db-note">Operations are blocked while this game has active or unsaved matches. Rating resets also require all ratings to be settled.</p>
     </div>
   </section>
 </div>

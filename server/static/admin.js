@@ -1,4 +1,62 @@
 (() => {
+  const forms = Array.from(document.querySelectorAll('.danger-form'));
+  let busy = false;
+  function synchronize(form) {
+    const game = form.elements.game.value;
+    const expected = game ? `${form.dataset.phrase} ${game}` : '';
+    form.querySelector('.danger-hint').textContent = game
+      ? `Type exactly: ${expected}` : 'Select a game to see the required confirmation text.';
+    form.querySelector('button').disabled = busy || !game || form.elements.confirmation.value !== expected;
+  }
+  forms.forEach(form => {
+    const status = form.querySelector('[role="status"]');
+    form.elements.game.addEventListener('change', () => {
+      form.elements.confirmation.value = '';
+      status.textContent = '';
+      synchronize(form);
+    });
+    form.elements.confirmation.addEventListener('input', () => synchronize(form));
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (busy || !form.reportValidity() || form.querySelector('button').disabled) return;
+      const body = {game: form.elements.game.value, confirmation: form.elements.confirmation.value};
+      busy = true;
+      forms.forEach(item => {
+        item.elements.game.disabled = item.elements.confirmation.disabled = true;
+        item.setAttribute('aria-busy', 'true');
+        synchronize(item);
+      });
+      status.textContent = 'Processing…';
+      status.dataset.error = 'false';
+      try {
+        const response = await platformFetch(`/api/admin/operations/${form.dataset.action}`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body),
+        });
+        if (response.redirected) throw new Error('Your session has expired. Please sign in again.');
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Operation failed. Please check the result before retrying.');
+        status.textContent = form.dataset.action === 'clear-matches'
+          ? `Deleted ${data.deleted_matches} match records for ${body.game}.`
+          : `Reset ${data.reset_versions} Bot versions to 1500 for ${body.game}.`;
+      } catch (error) {
+        status.textContent = error.message;
+        status.dataset.error = 'true';
+      } finally {
+        // Require a fresh typed confirmation for every attempt, including retries.
+        form.elements.confirmation.value = '';
+        busy = false;
+        forms.forEach(item => {
+          item.elements.game.disabled = item.elements.confirmation.disabled = false;
+          item.removeAttribute('aria-busy');
+          synchronize(item);
+        });
+      }
+    });
+    synchronize(form);
+  });
+})();
+
+(() => {
   const panel = document.getElementById('database-panel');
   if (!panel) return;
   const table = document.getElementById('db-table');
@@ -121,6 +179,7 @@
       item.tabIndex = selected ? 0 : -1;
       document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
     });
+    tab.scrollIntoView({block: 'nearest', inline: 'nearest'});
   }
   tabs.forEach((tab, index) => {
     tab.addEventListener('click', () => select(tab));

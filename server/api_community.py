@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from .bots import list_bots
+from .admin_operations import OperationConflict, perform
 from .security import require_admin, require_user
 from .site_settings import (
     MAX_CHAT_HISTORY_HOURS,
@@ -86,6 +87,21 @@ def update_site_settings(
     return SiteSettings(request.app.state.db).update(
         body.chat_history_hours, body.ladder_interval_seconds
     )
+
+
+class DangerousOperation(BaseModel):
+    game: str = Field(min_length=1, max_length=80)
+    confirmation: str = Field(min_length=1, max_length=160)
+
+
+@router.post("/admin/operations/{action}")
+def dangerous_operation(
+    action: str, body: DangerousOperation, request: Request, user=Depends(require_admin)
+):
+    try:
+        return perform(request.app.state.matches, body.game, action, body.confirmation)
+    except OperationConflict as error:
+        raise HTTPException(409, str(error))
 
 
 def admin_connection(request):
