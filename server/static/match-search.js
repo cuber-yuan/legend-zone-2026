@@ -67,7 +67,8 @@
         try {
           const query = new URLSearchParams({q});
           if (endpoint === 'bots' && game.value) query.set('game', game.value);
-          const options = await request(`/api/match-search/${endpoint}?${query}`, signal);
+          const results = await request(`/api/match-search/${endpoint}?${query}`, signal);
+          const options = endpoint === 'bots' ? results.filter(bot => !bot.deleted) : results;
           if (signal.aborted) return;
           output.replaceChildren();
           for (const option of options) {
@@ -104,7 +105,9 @@
   async function restore() {
     const token = ++restoreToken;
     controller?.abort(); clearBotPicker(); clearAuthorPicker();
-    applied = new URLSearchParams(location.search); dirty = false; data = null;
+    applied = new URLSearchParams(location.search);
+    if (!mode) applied.delete('bot_mode');
+    dirty = false; data = null;
     selectedBots = applied.getAll('bot').map(id => ({id}));
     selectedAuthor = applied.has('author') ? {id: applied.get('author'), username: 'User #' + applied.get('author')} : null;
     form.reset(); feedback.hidden = true;
@@ -113,7 +116,8 @@
       const option = Array.from(game.options).find(option => option.value === requestedGame || option.textContent === requestedGame);
       if (requestedGame && !option) game.add(new Option(requestedGame, requestedGame));
       game.value = option ? option.value : requestedGame;
-      mode.value = applied.get('bot_mode') || 'all'; state.value = applied.get('status') || 'all'; rating.value = applied.get('rating') || 'all';
+      if (mode) mode.value = applied.get('bot_mode') || 'all';
+      state.value = applied.get('status') || 'all'; rating.value = applied.get('rating') || 'all';
       from.value = localTime(applied.get('created_from')); through.value = localTime(applied.get('created_to'));
       renderSelected(); controls();
       const [bots, authors] = await Promise.all([
@@ -155,7 +159,7 @@
     const params = new URLSearchParams();
     if (game.value) params.set('game', game.value);
     for (const bot of selectedBots) params.append('bot', bot.id);
-    if (mode.value !== 'all') params.set('bot_mode', mode.value);
+    if (mode && mode.value !== 'all') params.set('bot_mode', mode.value);
     if (selectedAuthor) params.set('author', selectedAuthor.id);
     if (state.value !== 'all') params.set('status', state.value);
     if (rating.value !== 'all') params.set('rating', rating.value);

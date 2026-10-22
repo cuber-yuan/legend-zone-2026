@@ -6,7 +6,7 @@
 .matches-field { display: flex; flex-direction: column; gap: .25rem; min-width: 0; font-size: .8rem; color: #64748b; }
 .matches-field input, .matches-field select { min-width: 0; width: 100%; height: 2.125rem; border: 1px solid #cbd5e1; border-radius: .5rem; padding: .35rem .5rem; background: #fff; font-size: .875rem; color: #334155; }
 .matches-filters > * { grid-column: span 3; min-width: 0; }
-.matches-filters > .matches-wide { grid-column: span 4; }
+.matches-filters > .matches-wide { grid-column: span 6; }
 .matches-filters > .matches-mode { grid-column: span 2; }
 .matches-filters > .matches-full { grid-column: 1 / -1; }
 .matches-advanced summary { width: fit-content; cursor: pointer; color: #64748b; font-size: .8rem; }

@@ -1,6 +1,7 @@
 <section class="board-game-arena board-game-{{ board_variant }}" aria-label="{{ board_game }} game board">
   <div class="board-game-heading game-heading">
     <h1>{{ board_game }}</h1>
+    {% if not match_id %}{% include 'components/game_matches_link.html' %}{% endif %}
   </div>
   {% set player_sides = [{'label': 'Black', 'marker': 'black'}, {'label': 'White', 'marker': 'white'}] if board_variant == 'gomoku' else [{'label': 'X', 'marker': 'x'}, {'label': 'O', 'marker': 'o'}] %}
   {% include 'components/match_players.html' %}

@@ -16,6 +16,7 @@
   <section class="c4-arena" aria-labelledby="c4-title">
     <header class="c4-heading game-heading">
       <h1 id="c4-title" class="c4-title">Connect Four</h1>
+      {% if not match_id %}{% include 'components/game_matches_link.html' %}{% endif %}
     </header>
     {% set player_sides = [{'label': 'Blue', 'marker': 'blue'}, {'label': 'Red', 'marker': 'red'}] %}
     {% include 'components/match_players.html' %}

@@ -1,1 +1,4 @@
-<div class="game-matches-nav"><a href="{{ url_for('main.matches') }}?game={{ matches_game | urlencode }}">View Matches</a></div>
+<a class="game-matches-nav" href="{{ url_for('main.matches') }}?game={{ matches_game | urlencode }}">
+  <span>View Matches</span>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+</a>

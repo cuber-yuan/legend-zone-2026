@@ -22,6 +22,7 @@
     <section class="tank-arena" aria-label="Tank Battle game board">
       <div class="tank-heading game-heading">
         <h1>Tank Battle</h1>
+        {% if not match_id %}{% include 'components/game_matches_link.html' %}{% endif %}
       </div>
       {% set player_sides = [{'label': 'Blue', 'marker': 'blue'}, {'label': 'Red', 'marker': 'red'}] %}
       {% include 'components/match_players.html' %}

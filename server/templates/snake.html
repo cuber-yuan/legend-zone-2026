@@ -34,6 +34,7 @@
     <section class="snake-arena" aria-label="{{ guide_game }} game board">
       <div class="snake-heading game-heading">
         <h1>{{ guide_game }}</h1>
+        {% if not match_id %}{% include 'components/game_matches_link.html' %}{% endif %}
       </div>
       {% set player_sides = [{'label': 'Blue', 'marker': 'blue'}, {'label': 'Red', 'marker': 'red'}] %}
       {% include 'components/match_players.html' %}
