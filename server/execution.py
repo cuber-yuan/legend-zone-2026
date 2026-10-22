@@ -15,6 +15,8 @@ from threading import Lock, Thread
 
 from .bots import entry_file, package_path
 
+_PROCESS_SLOT = Lock()
+
 
 @dataclass
 class Execution:
@@ -60,6 +62,10 @@ class Executor:
         }
 
     def _run(self, command, cwd, text, timeout):
+        with _PROCESS_SLOT:
+            return self._run_exclusive(command, cwd, text, timeout)
+
+    def _run_exclusive(self, command, cwd, text, timeout):
         result = Execution(text)
         start = time.perf_counter()
         process = None
