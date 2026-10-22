@@ -257,7 +257,7 @@ window.PlatformClient = class PlatformClient {
       ]);
       this.dispatch("latest_matches", {
         matches: matches
-          .filter((match) => match.status === "finished")
+          .filter((match) => match.status === "finished" || match.status === "playing")
           .slice(0, 20)
           .map((match) => {
             const value = { ...match };
