@@ -3,6 +3,10 @@
   .lm-rating-up { color: #16a34a; }
   .lm-rating-down { color: #dc2626; }
   .lm-rating-neutral { color: #64748b; }
+  #matches-panel .lm-table th { font-size: 0.75rem; line-height: 1.5; color: #64748b; }
+  #matches-panel .lm-rating { font-size: 0.8125rem; font-weight: 500; }
+  #matches-panel .lm-rating-up { color: #15803d; }
+  #matches-panel .lm-rating-down { color: #b91c1c; }
   .lm-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
   .lm-count {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
