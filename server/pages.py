@@ -465,4 +465,5 @@ def game_page(slug: str, request: Request):
         demo=demo,
         match=demo,
         matches_game=game.slug,
+        create_match_game={"slug": game.slug, "name": game.name},
     )

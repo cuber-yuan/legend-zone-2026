@@ -1,0 +1,11 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='create-match.css') }}">
+{% include 'components/create_match_dialogs.html' %}
+<script src="{{ url_for('static', filename='create-match.js') }}"></script>
+<script>
+initMatchSetup({
+  {% if not create_match_game %}socket: socket,{% endif %}
+  isAuthenticated: {{ current_user.is_authenticated | tojson }},
+  username: {{ current_user.username | tojson if current_user.is_authenticated else 'null' }},
+  game: {{ create_match_game | tojson if create_match_game else 'null' }}
+});
+</script>

@@ -1,0 +1,56 @@
+{% if not create_match_game %}
+<!-- Step 1: pick a game -->
+<div id="modal-create-table" class="dialog-scrim hidden" role="dialog" aria-modal="true" aria-labelledby="dialog-title-game">
+    <div class="dialog-card">
+        <div class="dialog-accent"></div>
+        <div class="dialog-body">
+            <div class="dialog-eyebrow">
+                <div>
+                    <h3 id="dialog-title-game" class="dialog-title">Create a match</h3>
+                </div>
+                <span class="dialog-step">Step 1 · Game</span>
+            </div>
+            <div class="dialog-head">
+                <span class="dialog-label">Choose a game</span>
+                <div id="game-grid" class="game-grid" role="group" aria-label="Games"></div>
+            </div>
+            <div class="dialog-foot">
+                <div class="dialog-actions">
+                    <button id="btn-modal-create" type="button" class="dlg-btn dlg-btn-primary" disabled>
+                        Continue
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12l-7.5 7.5M21 12H3"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+<!-- Step 2: fill the two seats -->
+<div id="modal-player-setup" class="dialog-scrim hidden" role="dialog" aria-modal="true" aria-labelledby="dialog-title-seats">
+    <div class="dialog-card">
+        <div class="dialog-accent"></div>
+        <div class="dialog-body">
+            <div class="dialog-eyebrow">
+                <div>
+                    <h3 id="dialog-title-seats" class="dialog-title">Create a match</h3>
+                    <p class="dialog-sub" id="player-modal-game-name">Loading…</p>
+                </div>
+                <span class="dialog-step">{{ 'Seats' if create_match_game else 'Step 2 · Seats' }}</span>
+            </div>
+            <div class="dialog-head">
+                <span class="dialog-label" id="player-slots-label">Contestants</span>
+                <div id="player-slots" class="seat-stack" role="group" aria-labelledby="player-slots-label"></div>
+            </div>
+            <div class="dialog-foot">
+                <span class="dialog-note" id="lineup-note"></span>
+                <div class="dialog-actions">
+                    <button id="btn-start-game" type="button" class="dlg-btn dlg-btn-primary">Start game</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

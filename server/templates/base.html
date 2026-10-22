@@ -241,6 +241,8 @@
 
             </div>
 
+    {% if create_match_game %}{% include 'components/create_match_setup.html' %}{% endif %}
+
     {% block footer %}
     <footer class="bg-gray-800 text-white py-6 mt-10">
         <div class="max-w-screen-xl mx-auto px-4 text-center">
