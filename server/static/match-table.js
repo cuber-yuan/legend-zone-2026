@@ -57,7 +57,7 @@ window.MatchTable = (() => {
         return `<span class="lm-rating lm-rating-${tone}">${label}</span>`;
     }
 
-    function render(tbody, matches, emptyMessage = 'No matches yet.', {showRatingDelta = false} = {}) {
+    function render(tbody, matches, emptyMessage = 'No matches yet.', {showRatingDelta = false, showStatus = false} = {}) {
         if (!tbody) return;
         tbody.innerHTML = '';
         if (!matches.length) {
@@ -73,7 +73,9 @@ window.MatchTable = (() => {
             // name strings plus player_1_id / player_1_version fields.
             const p1Card = playerCard(match.player_1, match.winner === 0, 'purple', match.player_1_id, match.player_1_version, match.player_1_is_human, match.player_1_rating);
             const p2Card = playerCard(match.player_2, match.winner === 1, 'purple', match.player_2_id, match.player_2_version, match.player_2_is_human, match.player_2_rating);
-            const cards = [p1Card, p2Card].filter(Boolean);
+            const cards = (Array.isArray(match.players)
+                ? match.players.map((p, index) => playerCard(p.name, match.winner === index, 'purple', p.bot_id, p.version, p.type === 'human', p.rating))
+                : [p1Card, p2Card]).filter(Boolean);
             const playersStr = cards.length
                 ? `<span class="lm-players">${cards.join('')}</span>`
                 : '<span class="lm-dash">—</span>';
@@ -91,10 +93,13 @@ window.MatchTable = (() => {
             }
 
             let date = fmtLocal(match.created_at);
+            const states = {playing: 'In progress', finished: 'Finished', interrupted: 'Interrupted'};
+            const state = match.display_status || match.status;
+            const statusHtml = showStatus ? `<span class="lm-status">${escapeHtml(states[state] || state)}</span>` : '';
 
             tbody.innerHTML += `
                 <tr>
-                    <td>${showRatingDelta ? ratingChange(match.rating_delta) : escapeHtml(match.game)}</td>
+                    <td>${showRatingDelta ? ratingChange(match.rating_delta) : escapeHtml(match.game)}${statusHtml}</td>
                     <td>${playersStr}</td>
                     <td>${replayLink}</td>
                     <td class="lm-time hidden sm:table-cell" title="${escapeHtml(match.created_at || '')}">${escapeHtml(date)}</td>

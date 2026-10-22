@@ -120,6 +120,7 @@
       {% with match_table_id='bot-matches-tbody', show_rating_delta=true %}
         {% include 'components/match_table.html' %}
       {% endwith %}
+      <div class="lm-more-footer"><a class="lm-more" href="{{ url_for('main.matches') }}?bot={{ bot.id | urlencode }}">More Matches</a></div>
     </div>
     <div id="source-panel" class="bot-panel" role="tabpanel" aria-labelledby="source-tab" tabindex="0" hidden>
     <div class="flex flex-wrap items-center justify-between gap-2 bg-gray-800 px-4 py-2">

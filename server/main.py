@@ -14,6 +14,7 @@ from .api_auth import router as auth_router
 from .api_bots import router as bots_router
 from .api_community import router as community_router
 from .api_matches import router as matches_router
+from .api_match_search import router as match_search_router
 from .chat import Chat
 from .config import ROOT, Settings
 from .database import Database
@@ -174,6 +175,7 @@ def create_app(settings=None):
         account_router,
         bots_router,
         matches_router,
+        match_search_router,
         community_router,
         tables_router,
     ):

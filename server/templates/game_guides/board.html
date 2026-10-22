@@ -1,4 +1,5 @@
 {% from 'game_guides/macros.html' import section, execution_rules %}
+{% include 'components/game_matches_link.html' %}
 {% set is_connect4 = guide_game == 'Connect Four' %}
 {% set size = 15 if guide_game == 'Gomoku' else 3 %}
 {% set cols = 7 if is_connect4 else size %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Matches{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='match-table.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='bot-rating.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='match-search.css') }}">
+<div class="matches-browser">
+  <section class="matches-card">
+    <header class="matches-heading"><h1>Matches</h1></header>
+    <form id="match-filters" class="matches-filters">
+      <label class="matches-field" for="filter-game">Game
+        <select id="filter-game" name="game" aria-label="Game"><option value="">All games</option>
+          {% for game in games %}<option value="{{ game.slug }}">{{ game.name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="matches-field" for="filter-status">Status
+        <select id="filter-status" name="status" aria-label="Status"><option value="all">All statuses</option><option value="playing">In progress</option><option value="finished">Finished</option><option value="interrupted">Interrupted</option></select>
+      </label>
+      <label class="matches-field" for="filter-rating">Rating
+        <select id="filter-rating" name="rating" aria-label="Rating" aria-describedby="rating-filter-hint"><option value="all">All</option><option value="rated">Rated</option><option value="unrated">Unrated</option></select>
+      </label>
+      <div class="matches-picker matches-wide">
+        <label class="matches-field" for="filter-bot-search">Participating Bots
+          <input id="filter-bot-search" type="search" placeholder="Search Bot name, ID or author" maxlength="100" autocomplete="off" aria-controls="bot-options" aria-describedby="bot-filter-hint">
+        </label>
+        <div id="bot-selected" class="matches-selected" role="group" aria-label="Selected Bots"></div>
+        <div id="bot-options" class="matches-options" role="group" aria-label="Bot search results" hidden></div>
+      </div>
+      <label class="matches-field" for="filter-bot-mode">Bot matching
+        <select id="filter-bot-mode" name="bot_mode" aria-label="Bot matching"><option value="all">All selected Bots</option><option value="any">Any selected Bot</option></select>
+      </label>
+      <div class="matches-picker">
+        <label class="matches-field" for="filter-author-search">Bot author
+          <input id="filter-author-search" type="search" placeholder="Search username" maxlength="40" autocomplete="off" aria-controls="author-options">
+        </label>
+        <div id="author-selected" class="matches-selected" role="group" aria-label="Selected author"></div>
+        <div id="author-options" class="matches-options" role="group" aria-label="Author search results" hidden></div>
+      </div>
+      <label class="matches-field" for="filter-from">Created from
+        <input id="filter-from" type="datetime-local" step="1">
+      </label>
+      <label class="matches-field" for="filter-to">Created through
+        <input id="filter-to" type="datetime-local" step="1">
+      </label>
+      <div class="matches-actions matches-full">
+        <button class="matches-button primary" type="submit">Apply Filters</button>
+        <button class="matches-button" id="filter-clear" type="button">Clear Filters</button>
+      </div>
+      <div class="matches-hints matches-full">
+        <p id="bot-filter-hint">Select up to 20 Bots. All requires every selected Bot to participate; other participants are allowed. Different filters are combined.</p>
+        <p id="rating-filter-hint">Rated and Unrated show settled matches only. Times use your local timezone: <span id="filter-timezone"></span>.</p>
+        <p>Some older matches with deleted Bots may be unavailable when filtering by author.</p>
+      </div>
+    </form>
+  </section>
+  <section class="matches-card" aria-label="Matching matches">
+    <div class="matches-results-heading"><p id="match-summary" role="status" aria-live="polite">Loading matches…</p><button id="match-refresh" class="matches-button" type="button">Refresh</button></div>
+    <p id="match-feedback" class="matches-feedback" role="status" aria-live="polite" hidden></p>
+    <div id="match-results" aria-busy="true">
+      {% with match_table_id='search-matches-tbody' %}{% include 'components/match_table.html' %}{% endwith %}
+    </div>
+    <div class="matches-pagination">
+      <button id="match-previous" class="matches-button" type="button" disabled>Previous</button>
+      <span id="match-page"></span>
+      <button id="match-next" class="matches-button" type="button" disabled>Next</button>
+    </div>
+  </section>
+</div>
+<script src="{{ url_for('static', filename='bot-rating.js') }}" defer></script>
+<script src="{{ url_for('static', filename='match-table.js') }}" defer></script>
+<script src="{{ url_for('static', filename='match-search.js') }}" defer></script>
+{% endblock %}

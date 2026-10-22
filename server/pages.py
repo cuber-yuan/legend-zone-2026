@@ -32,6 +32,7 @@ PATHS = {
     "main.profile_root": "/profile",
     "main.bot_detail": "/bot/{bot_id}",
     "main.match_view": "/match/{match_id}",
+    "main.matches": "/matches",
     "main.match_debug": "/api/matches/{match_id}/debug",
     "auth.login": "/login",
     "auth.register": "/register",
@@ -120,6 +121,11 @@ def home(request: Request):
 @router.get("/games")
 def games(request: Request):
     return render(request, "games.html", "main.games")
+
+
+@router.get("/matches")
+def matches_page(request: Request):
+    return render(request, "matches.html", "main.matches", games=GAMES.values())
 
 
 @router.get("/rating")
@@ -451,5 +457,12 @@ def game_page(slug: str, request: Request):
         break
     template = "snake.html" if game.kind == "snake" else slug + ".html"
     return render(
-        request, template, "main." + slug, match_id=None, bots=[], demo=demo, match=demo
+        request,
+        template,
+        "main." + slug,
+        match_id=None,
+        bots=[],
+        demo=demo,
+        match=demo,
+        matches_game=game.slug,
     )

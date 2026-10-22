@@ -387,6 +387,7 @@
     <section class="bg-white rounded-lg overflow-hidden shadow-md">
         <div class="lm-head px-4 py-4 sm:px-6 sm:py-5">
             <h2 class="text-xl sm:text-2xl font-semibold">Latest Matches</h2>
+            <a class="lm-more" href="{{ url_for('main.matches') }}">More Matches</a>
             <!-- <span class="lm-count" id="latest-count"></span> -->
         </div>
         {% with match_table_id='latest-matches-tbody' %}

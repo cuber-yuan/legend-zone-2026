@@ -63,6 +63,7 @@ def create_match(db, game_value, choices, user):
                     "type": "bot",
                     "name": row["bot_name"],
                     "bot_id": row["id"],
+                    "owner_id": row["user_id"],
                     "version": row["version_number"],
                     "rating_eligible": row["version_number"] == latest,
                 }
@@ -114,7 +115,10 @@ def participants(db, row, snapshots=None, ratings=None):
         }
     ratings = ratings or {}
     output = []
-    for seat in (1, 2):
+    seats = set(snapshot) | {
+        int(key[7:]) for key in raw if key.startswith("player_") and key[7:].isdigit()
+    }
+    for seat in sorted(seats or {1, 2}):
         value = raw.get(f"player_{seat}", {})
         player = value.copy() if isinstance(value, dict) else {"name": str(value)}
         if seat in snapshot:
@@ -171,6 +175,28 @@ def list_matches(db, *, bot_id=None, game=None, limit=20, offset=0):
         sql + " ORDER BY m.created_at DESC,m.rowid DESC LIMIT ? OFFSET ?",
         [*params, limit, offset],
     )
+    result = serialize_matches(db, rows)
+    if bot_id:
+        for item in result:
+            if any(p.get("type") == "human" for p in item["players"]):
+                item["rating_delta"] = None
+                continue
+            history = db.one(
+                "SELECT h.rating-(SELECT p.rating FROM rating_history p WHERE p.version_id=h.version_id AND p.id<h.id ORDER BY p.id DESC LIMIT 1) AS delta "
+                "FROM rating_history h WHERE h.bot_id=? AND h.match_id=?",
+                (bot_id, item["id"]),
+            )
+            item["rating_delta"] = (
+                history["delta"]
+                if history
+                else 0
+                if item["rating_status"] == "skipped"
+                else None
+            )
+    return result
+
+
+def serialize_matches(db, rows):
     ids = [row["id"] for row in rows]
     snapshots = {key: [] for key in ids}
     if ids:
@@ -207,23 +233,6 @@ def list_matches(db, *, bot_id=None, game=None, limit=20, offset=0):
         public_match(db, row, snapshots=snapshots[row["id"]], ratings=ratings)
         for row in rows
     ]
-    if bot_id:
-        for item in result:
-            if any(p.get("type") == "human" for p in item["players"]):
-                item["rating_delta"] = None
-                continue
-            history = db.one(
-                "SELECT h.rating-(SELECT p.rating FROM rating_history p WHERE p.version_id=h.version_id AND p.id<h.id ORDER BY p.id DESC LIMIT 1) AS delta "
-                "FROM rating_history h WHERE h.bot_id=? AND h.match_id=?",
-                (bot_id, item["id"]),
-            )
-            item["rating_delta"] = (
-                history["delta"]
-                if history
-                else 0
-                if item["rating_status"] == "skipped"
-                else None
-            )
     return result
 
 
