@@ -9,7 +9,6 @@
   const previous = field('match-previous'), next = field('match-next'), refresh = field('match-refresh');
   let selectedBots = [], selectedAuthor = null, applied = new URLSearchParams(location.search);
   let dirty = false, loading = false, data = null, controller = null, restoreToken = 0;
-  field('filter-timezone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   async function request(url, signal) {
     const response = await platformFetch(url, {cache: 'no-store', signal});
@@ -33,7 +32,7 @@
     if (location.pathname + location.search !== url) history[push ? 'pushState' : 'replaceState']({}, '', url);
   }
   function botLabel(bot) {
-    return `${bot.bot_name || bot.id}${bot.game ? ' · ' + bot.game : ''}${bot.owner ? ' · by ' + bot.owner : bot.deleted ? ' · deleted' : ''}`;
+    return `${bot.bot_name || bot.id}${bot.game ? ' · ' + bot.game : ''}${bot.owner ? ' · by ' + bot.owner : ''}`;
   }
   function chip(container, label, remove) {
     const wrapper = document.createElement('span'), text = document.createElement('span'), button = document.createElement('button');

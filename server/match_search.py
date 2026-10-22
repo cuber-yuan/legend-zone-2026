@@ -166,11 +166,8 @@ def bot_options(db, q="", ids=(), game=None):
         args.extend([like(q)] * 3)
     where = " AND ".join(conditions) or "1=1"
     return db.all(
-        "WITH options AS (SELECT b.id,b.bot_name,b.game,u.username owner,0 deleted FROM bots b JOIN users u ON u.id=b.user_id "
-        "UNION ALL SELECT p.bot_id_snapshot,MIN(p.player_name),m.game,NULL,1 FROM match_players p JOIN matches m ON m.id=p.match_id "
-        "WHERE p.player_type='bot' AND p.bot_id_snapshot IS NOT NULL AND NOT EXISTS (SELECT 1 FROM bots b WHERE b.id=p.bot_id_snapshot) "
-        "GROUP BY p.bot_id_snapshot,m.game) "
-        f"SELECT * FROM options WHERE {where} ORDER BY deleted,bot_name,id LIMIT 20",
+        "WITH options AS (SELECT b.id,b.bot_name,b.game,u.username owner FROM bots b JOIN users u ON u.id=b.user_id) "
+        f"SELECT * FROM options WHERE {where} ORDER BY bot_name,id LIMIT 20",
         args,
     )
 

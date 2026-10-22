@@ -13,22 +13,13 @@
           {% for game in games %}<option value="{{ game.slug }}">{{ game.name }}</option>{% endfor %}
         </select>
       </label>
-      <label class="matches-field" for="filter-status">Status
-        <select id="filter-status" name="status" aria-label="Status"><option value="all">All statuses</option><option value="playing">In progress</option><option value="finished">Finished</option><option value="interrupted">Interrupted</option></select>
-      </label>
-      <label class="matches-field" for="filter-rating">Rating
-        <select id="filter-rating" name="rating" aria-label="Rating" aria-describedby="rating-filter-hint"><option value="all">All</option><option value="rated">Rated</option><option value="unrated">Unrated</option></select>
-      </label>
       <div class="matches-picker matches-wide">
         <label class="matches-field" for="filter-bot-search">Participating Bots
-          <input id="filter-bot-search" type="search" placeholder="Search Bot name, ID or author" maxlength="100" autocomplete="off" aria-controls="bot-options" aria-describedby="bot-filter-hint">
+          <input id="filter-bot-search" type="search" placeholder="Search Bot name, ID or author" maxlength="100" autocomplete="off" aria-controls="bot-options">
         </label>
         <div id="bot-selected" class="matches-selected" role="group" aria-label="Selected Bots"></div>
         <div id="bot-options" class="matches-options" role="group" aria-label="Bot search results" hidden></div>
       </div>
-      <label class="matches-field" for="filter-bot-mode">Bot matching
-        <select id="filter-bot-mode" name="bot_mode" aria-label="Bot matching"><option value="all">All selected Bots</option><option value="any">Any selected Bot</option></select>
-      </label>
       <div class="matches-picker">
         <label class="matches-field" for="filter-author-search">Bot author
           <input id="filter-author-search" type="search" placeholder="Search username" maxlength="40" autocomplete="off" aria-controls="author-options">
@@ -36,20 +27,29 @@
         <div id="author-selected" class="matches-selected" role="group" aria-label="Selected author"></div>
         <div id="author-options" class="matches-options" role="group" aria-label="Author search results" hidden></div>
       </div>
-      <label class="matches-field" for="filter-from">Created from
-        <input id="filter-from" type="datetime-local" step="1">
+      <label class="matches-field matches-mode" for="filter-bot-mode">Bot matching
+        <select id="filter-bot-mode" name="bot_mode" aria-label="Bot matching"><option value="all">All selected Bots</option><option value="any">Any selected Bot</option></select>
       </label>
-      <label class="matches-field" for="filter-to">Created through
-        <input id="filter-to" type="datetime-local" step="1">
-      </label>
+      <details class="matches-advanced matches-full">
+        <summary>Advanced Filters</summary>
+        <div class="matches-advanced-fields">
+          <label class="matches-field" for="filter-status">Status
+            <select id="filter-status" name="status" aria-label="Status"><option value="all">All statuses</option><option value="playing">In progress</option><option value="finished">Finished</option><option value="interrupted">Interrupted</option></select>
+          </label>
+          <label class="matches-field" for="filter-rating">Rating
+            <select id="filter-rating" name="rating" aria-label="Rating"><option value="all">All</option><option value="rated">Rated</option><option value="unrated">Unrated</option></select>
+          </label>
+          <label class="matches-field" for="filter-from">Created from
+            <input id="filter-from" type="datetime-local" step="1">
+          </label>
+          <label class="matches-field" for="filter-to">Created through
+            <input id="filter-to" type="datetime-local" step="1">
+          </label>
+        </div>
+      </details>
       <div class="matches-actions matches-full">
         <button class="matches-button primary" type="submit">Apply Filters</button>
         <button class="matches-button" id="filter-clear" type="button">Clear Filters</button>
-      </div>
-      <div class="matches-hints matches-full">
-        <p id="bot-filter-hint">Select up to 20 Bots. All requires every selected Bot to participate; other participants are allowed. Different filters are combined.</p>
-        <p id="rating-filter-hint">Rated and Unrated show settled matches only. Times use your local timezone: <span id="filter-timezone"></span>.</p>
-        <p>Some older matches with deleted Bots may be unavailable when filtering by author.</p>
       </div>
     </form>
   </section>
