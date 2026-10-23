@@ -1,9 +1,11 @@
 .matches-browser { position: relative; max-width: 1024px; margin: 0 auto; color: #334155; }
 .matches-stats { display: none; }
+.matches-stats [hidden] { display: none; }
 .matches-stats-card { position: sticky; top: 6rem; padding: 1rem; }
 .matches-stats-card h2 { font-size: 1rem; font-weight: 600; color: #172b47; }
 .matches-stats-note { margin-top: .5rem; font-size: .75rem; color: #64748b; }
 .matches-pie { width: 152px; aspect-ratio: 1; margin: 1rem auto; border-radius: 50%; background: #e2e8f0; }
+.matches-frequency { height: 200px; margin-top: 1rem; }
 .matches-stats-legend { display: grid; gap: .65rem; list-style: none; padding: 0; }
 .matches-stats-legend li { display: grid; grid-template-columns: .5rem minmax(0,1fr); align-items: baseline; gap: .5rem; font-size: .8rem; }
 .matches-stats-swatch { width: .5rem; height: .5rem; border-radius: 50%; }

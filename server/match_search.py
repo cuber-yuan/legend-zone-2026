@@ -1,6 +1,6 @@
 """Read-only match browsing with participant-based filters and public pickers."""
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from .games import get_game
 from .matches import serialize_matches
@@ -74,6 +74,24 @@ def time_bound(value):
         return parsed.astimezone(timezone.utc).isoformat()
     except (ValueError, OverflowError):
         raise ValueError("Use a valid date and time with a timezone.")
+
+
+def match_frequency(conn, where, args):
+    end = datetime.now(timezone.utc).replace(microsecond=0)
+    start = end - timedelta(hours=12)
+    rows = conn.execute(
+        "SELECT (unixepoch(m.created_at)-?)/3600 AS bucket,count(*) AS matches "
+        f"FROM matches m WHERE {where} "
+        "AND unixepoch(m.created_at)>=? AND unixepoch(m.created_at)<? "
+        "GROUP BY bucket",
+        [int(start.timestamp()), *args, int(start.timestamp()), int(end.timestamp())],
+    )
+    counts = {row["bucket"]: row["matches"] for row in rows}
+    buckets = [
+        {"start": (start + timedelta(hours=i)).isoformat(), "count": counts.get(i, 0)}
+        for i in range(12)
+    ]
+    return {"buckets": buckets, "total": sum(bucket["count"] for bucket in buckets)}
 
 
 def search(
@@ -177,6 +195,16 @@ def search(
             if len(bots) == 1 or (len(bots) == 2 and bot_mode == "all")
             else None
         )
+        frequency = (
+            match_frequency(conn, where, args)
+            if not bots
+            and author is None
+            and status == "all"
+            and rating == "all"
+            and not start
+            and not end
+            else None
+        )
     matches = serialize_matches(db, rows)
     for item in matches:
         if item["status"] == "playing" and item["id"] not in active_ids:
@@ -193,6 +221,7 @@ def search(
         "pages": pages,
         "page_size": 20,
         "head_to_head": stats,
+        "frequency": frequency,
     }
 
 

@@ -10,6 +10,7 @@
   let selectedBots = [], selectedAuthor = null, applied = new URLSearchParams(location.search);
   let dirty = false, loading = false, data = null, controller = null, restoreToken = 0;
   let chartSignature = null;
+  let frequencyChart = null, frequencyBuckets = [];
 
   async function request(url, signal) {
     const response = await platformFetch(url, {cache: 'no-store', signal});
@@ -144,7 +145,7 @@
       const result = await request('/api/match-search?' + applied, current.signal);
       if (current.signal.aborted) return;
       data = result;
-      renderHeadToHead(result.head_to_head);
+      renderHeadToHead(result.head_to_head, result.frequency);
       if (result.page === 1) applied.delete('page'); else applied.set('page', result.page);
       updateUrl();
       MatchTable.render(field('search-matches-tbody'), result.matches, I18n.t("No matches found for these filters."), {showStatus: true});
@@ -156,8 +157,51 @@
       if (controller === current) { loading = false; controls(); field('match-results').setAttribute('aria-busy', 'false'); }
     }
   }
-  function renderHeadToHead(stats) {
+  function renderFrequency(frequency) {
     const panel = field('match-head-to-head');
+    const hour = value => new Date(value).toLocaleTimeString(I18n.locale === 'zh' ? 'zh-CN' : 'en-GB', {hour: '2-digit', minute: '2-digit', hourCycle: 'h23'});
+    const labels = frequency.buckets.map(bucket => hour(bucket.start));
+    const counts = frequency.buckets.map(bucket => bucket.count);
+    const signature = JSON.stringify(['frequency', labels, counts]);
+    frequencyBuckets = frequency.buckets;
+    if (signature === chartSignature && !panel.hidden) return;
+    chartSignature = signature;
+    field('head-to-head-title').textContent = I18n.t('Match Frequency');
+    field('match-stats-note').textContent = I18n.t('Last 12 hours · matches/hour');
+    field('head-to-head-chart').hidden = true;
+    field('head-to-head-legend').hidden = true;
+    field('match-frequency').hidden = false;
+    field('head-to-head-total').textContent = I18n.t('{0} matches created', frequency.total);
+    field('match-frequency-chart').setAttribute('aria-label', I18n.t('Match Frequency') + ': ' + labels.map((label, i) => label + ' · ' + counts[i]).join('; '));
+    if (panel.hidden) panel.hidden = false;
+    if (frequencyChart) {
+      frequencyChart.data.labels = labels;
+      frequencyChart.data.datasets[0].data = counts;
+      frequencyChart.update('none');
+      return;
+    }
+    frequencyChart = new Chart(field('match-frequency-chart'), {
+      type: 'line',
+      data: {labels, datasets: [{label: I18n.t('Matches'), data: counts, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.08)', borderWidth: 2, pointRadius: 2, fill: true}]},
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        scales: {
+          x: {grid: {display: false}, ticks: {maxTicksLimit: 3, maxRotation: 0, font: {size: 10}}},
+          y: {beginAtZero: true, suggestedMax: 1, ticks: {precision: 0, font: {size: 10}}, grid: {color: '#f1f5f9'}},
+        },
+        plugins: {
+          legend: {display: false},
+          tooltip: {callbacks: {title: items => {
+            const bucket = frequencyBuckets[items[0].dataIndex];
+            return fmtLocal(bucket.start) + ' – ' + hour(new Date(new Date(bucket.start).getTime() + 3600000));
+          }}},
+        },
+      },
+    });
+  }
+  function renderHeadToHead(stats, frequency) {
+    const panel = field('match-head-to-head');
+    if (!dirty && frequency) { renderFrequency(frequency); return; }
     if (dirty || !stats) { panel.hidden = true; return; }
     const single = stats.bots.length === 1;
     const colors = ['#2563eb', '#f59e0b', '#94a3b8'];
@@ -168,6 +212,10 @@
     const signature = JSON.stringify([stats, entries]);
     if (signature === chartSignature && !panel.hidden) return;
     chartSignature = signature;
+    field('match-stats-note').textContent = I18n.t('Current filters · completed matches');
+    field('head-to-head-chart').hidden = false;
+    field('head-to-head-legend').hidden = false;
+    field('match-frequency').hidden = true;
     field('head-to-head-title').textContent = single ? I18n.t('Bot Win Rate') : I18n.t('Head to Head');
     if (single) {
       entries[0].label = I18n.t('{0} · Wins', entries[0].label);

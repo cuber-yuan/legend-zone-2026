@@ -8,9 +8,10 @@
   <aside id="match-head-to-head" class="matches-stats" aria-labelledby="head-to-head-title" hidden>
     <section class="matches-card matches-stats-card">
       <h2 id="head-to-head-title">{{ _("Head to Head") }}</h2>
-      <p class="matches-stats-note">{{ _("Current filters · completed matches") }}</p>
+      <p id="match-stats-note" class="matches-stats-note">{{ _("Current filters · completed matches") }}</p>
       <div id="head-to-head-chart" class="matches-pie" role="img"></div>
       <ul id="head-to-head-legend" class="matches-stats-legend"></ul>
+      <div id="match-frequency" class="matches-frequency" hidden><canvas id="match-frequency-chart" role="img" aria-label="{{ _('Match Frequency') }}"></canvas></div>
       <p id="head-to-head-total" class="matches-stats-note" role="status"></p>
     </section>
   </aside>
@@ -79,5 +80,6 @@
 </div>
 <script src="{{ url_for('static', filename='bot-rating.js') }}" defer></script>
 <script src="{{ url_for('static', filename='match-table.js') }}" defer></script>
+<script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}" defer></script>
 <script src="{{ url_for('static', filename='match-search.js') }}" defer></script>
 {% endblock %}
