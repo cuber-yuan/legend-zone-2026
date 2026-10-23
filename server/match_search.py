@@ -12,6 +12,47 @@ PLAYER = "CASE WHEN j.type='object' THEN j.value ELSE '{}' END"
 RAW_BOT = f"COALESCE(json_extract({PLAYER},'$.type'),'bot')='bot'"
 
 
+def bot_participates(winner=False):
+    seat = " AND p.seat=m.winner+1" if winner else ""
+    raw_seat = " AND j.key='player_'||(m.winner+1)" if winner else ""
+    return (
+        "(EXISTS (SELECT 1 FROM match_players p WHERE p.match_id=m.id "
+        "AND p.player_type='bot' "
+        f"AND (p.bot_id=? OR p.bot_id_snapshot=?){seat}) OR "
+        f"EXISTS (SELECT 1 FROM {RAW_PLAYERS} WHERE {RAW_BOT} "
+        f"AND json_extract({PLAYER},'$.bot_id')=?{raw_seat} "
+        "AND NOT EXISTS (SELECT 1 FROM match_players p WHERE p.match_id=m.id "
+        "AND j.key='player_'||p.seat)))"
+    )
+
+
+def head_to_head(conn, where, args, bots):
+    counts = conn.execute(
+        "WITH outcomes AS (SELECT m.winner,"
+        f"CASE WHEN {bot_participates(winner=True)} THEN 0 "
+        f"WHEN {bot_participates(winner=True)} THEN 1 ELSE -1 END AS outcome "
+        f"FROM matches m WHERE {where} "
+        "AND m.status='finished' AND COALESCE(m.termination_reason,'')!='server_error' "
+        "AND m.winner IN (-1,0,1) "
+        "AND ((SELECT count(*) FROM match_players p WHERE p.match_id=m.id) + "
+        f"(SELECT count(*) FROM {RAW_PLAYERS} WHERE "
+        "NOT EXISTS (SELECT 1 FROM match_players p WHERE p.match_id=m.id "
+        "AND j.key='player_'||p.seat)))=2) "
+        "SELECT count(*) total,COALESCE(sum(winner!=-1 AND outcome=0),0) a_wins,"
+        "COALESCE(sum(winner!=-1 AND outcome=1),0) b_wins,"
+        "COALESCE(sum(winner=-1),0) draws FROM outcomes",
+        [*[bots[0]] * 3, *[bots[1]] * 3, *args],
+    ).fetchone()
+    return {
+        "bots": [
+            {"id": bots[0], "wins": counts["a_wins"]},
+            {"id": bots[1], "wins": counts["b_wins"]},
+        ],
+        "draws": counts["draws"],
+        "total": counts["total"],
+    }
+
+
 def time_bound(value):
     if value is None:
         return None
@@ -53,13 +94,7 @@ def search(
         args.append(get_game(game).name)
     clauses = []
     for bot in bots:
-        clauses.append(
-            "(EXISTS (SELECT 1 FROM match_players p WHERE p.match_id=m.id AND p.player_type='bot' "
-            "AND (p.bot_id=? OR p.bot_id_snapshot=?)) OR "
-            f"EXISTS (SELECT 1 FROM {RAW_PLAYERS} WHERE {RAW_BOT} "
-            f"AND json_extract({PLAYER},'$.bot_id')=? "
-            "AND NOT EXISTS (SELECT 1 FROM match_players p WHERE p.match_id=m.id AND j.key='player_'||p.seat)))"
-        )
+        clauses.append(bot_participates())
         args.extend((bot, bot, bot))
     if clauses:
         conditions.append(
@@ -126,6 +161,11 @@ def search(
                 [*args, (page - 1) * 20],
             )
         ]
+        stats = (
+            head_to_head(conn, where, args, bots)
+            if len(bots) == 2 and bot_mode == "all"
+            else None
+        )
     matches = serialize_matches(db, rows)
     for item in matches:
         if item["status"] == "playing" and item["id"] not in active_ids:
@@ -141,6 +181,7 @@ def search(
         "page": page,
         "pages": pages,
         "page_size": 20,
+        "head_to_head": stats,
     }
 
 

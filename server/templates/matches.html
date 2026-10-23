@@ -5,6 +5,15 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='bot-rating.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='match-search.css') }}">
 <div class="matches-browser">
+  <aside id="match-head-to-head" class="matches-stats" aria-labelledby="head-to-head-title" hidden>
+    <section class="matches-card matches-stats-card">
+      <h2 id="head-to-head-title">{{ _("Head to Head") }}</h2>
+      <p class="matches-stats-note">{{ _("Current filters · completed matches") }}</p>
+      <div id="head-to-head-chart" class="matches-pie" role="img"></div>
+      <ul id="head-to-head-legend" class="matches-stats-legend"></ul>
+      <p id="head-to-head-total" class="matches-stats-note" role="status"></p>
+    </section>
+  </aside>
   <section class="matches-card">
     <header class="matches-heading"><h1>{{ _("Matches") }}</h1></header>
     <form id="match-filters" class="matches-filters">

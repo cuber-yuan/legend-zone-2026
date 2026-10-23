@@ -1,4 +1,17 @@
-.matches-browser { max-width: 1024px; margin: 0 auto; color: #334155; }
+.matches-browser { position: relative; max-width: 1024px; margin: 0 auto; color: #334155; }
+.matches-stats { display: none; }
+.matches-stats-card { position: sticky; top: 1.5rem; padding: 1rem; }
+.matches-stats-card h2 { font-size: 1rem; font-weight: 600; color: #172b47; }
+.matches-stats-note { margin-top: .5rem; font-size: .75rem; color: #64748b; }
+.matches-pie { width: 152px; aspect-ratio: 1; margin: 1rem auto; border-radius: 50%; background: #e2e8f0; }
+.matches-stats-legend { display: grid; gap: .65rem; list-style: none; padding: 0; }
+.matches-stats-legend li { display: grid; grid-template-columns: .5rem minmax(0,1fr); align-items: baseline; gap: .5rem; font-size: .8rem; }
+.matches-stats-swatch { width: .5rem; height: .5rem; border-radius: 50%; }
+.matches-stats-label { overflow-wrap: anywhere; }
+.matches-stats-value { display: block; margin-top: .15rem; color: #64748b; font-size: .75rem; font-variant-numeric: tabular-nums; }
+@media (min-width: 1536px) {
+  .matches-stats:not([hidden]) { display: block; position: absolute; left: calc(100% + 20px); top: 0; bottom: 0; width: 208px; }
+}
 .matches-card { background: #fff; border: 1px solid #e2e8f0; border-radius: .75rem; box-shadow: 0 4px 12px rgba(15,23,42,.04); overflow: hidden; margin-bottom: 1rem; }
 .matches-heading { padding: .75rem 1rem; border-bottom: 1px solid #f1f5f9; }
 .matches-heading h1 { font-size: 1.5rem; font-weight: 600; color: #172b47; }

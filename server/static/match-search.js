@@ -24,6 +24,7 @@
   function changed() {
     restoreToken++;
     dirty = true;
+    field('match-head-to-head').hidden = true;
     summary.textContent = I18n.t("Filters changed. Apply Filters to update the results.");
     controls();
   }
@@ -105,6 +106,7 @@
   async function restore() {
     const token = ++restoreToken;
     controller?.abort(); clearBotPicker(); clearAuthorPicker();
+    field('match-head-to-head').hidden = true;
     applied = new URLSearchParams(location.search);
     if (!mode) applied.delete('bot_mode');
     dirty = false; data = null;
@@ -137,10 +139,12 @@
     controller?.abort(); const current = controller = new AbortController();
     loading = true; controls(); field('match-results').setAttribute('aria-busy', 'true');
     feedback.hidden = true;
+    field('match-head-to-head').hidden = true;
     try {
       const result = await request('/api/match-search?' + applied, current.signal);
       if (current.signal.aborted) return;
       data = result;
+      renderHeadToHead(result.head_to_head);
       if (result.page === 1) applied.delete('page'); else applied.set('page', result.page);
       updateUrl();
       MatchTable.render(field('search-matches-tbody'), result.matches, I18n.t("No matches found for these filters."), {showStatus: true});
@@ -151,6 +155,36 @@
     } finally {
       if (controller === current) { loading = false; controls(); field('match-results').setAttribute('aria-busy', 'false'); }
     }
+  }
+  function renderHeadToHead(stats) {
+    const panel = field('match-head-to-head');
+    panel.hidden = dirty || !stats;
+    if (panel.hidden) return;
+    const colors = ['#2563eb', '#f59e0b', '#94a3b8'];
+    const entries = stats.bots.map(bot => ({
+      label: selectedBots.find(item => item.id === bot.id)?.bot_name || bot.id,
+      count: bot.wins,
+    }));
+    entries.push({label: I18n.t('Draws'), count: stats.draws});
+    const legend = field('head-to-head-legend'), chart = field('head-to-head-chart');
+    legend.replaceChildren();
+    let angle = 0;
+    const segments = [], descriptions = [];
+    entries.forEach((entry, index) => {
+      const percent = stats.total ? entry.count / stats.total * 100 : 0;
+      const description = I18n.t('{0}% · {1} matches', percent.toFixed(1), entry.count);
+      const row = document.createElement('li'), swatch = document.createElement('span');
+      const label = document.createElement('span'), value = document.createElement('span');
+      swatch.className = 'matches-stats-swatch'; swatch.style.background = colors[index]; swatch.setAttribute('aria-hidden', 'true');
+      label.className = 'matches-stats-label'; label.textContent = entry.label;
+      value.className = 'matches-stats-value'; value.textContent = description;
+      label.append(value); row.append(swatch, label); legend.append(row);
+      segments.push(`${colors[index]} ${angle}% ${angle + percent}%`); angle += percent;
+      descriptions.push(entry.label + ': ' + description);
+    });
+    chart.style.background = stats.total ? `conic-gradient(${segments.join(',')})` : '#e2e8f0';
+    chart.setAttribute('aria-label', descriptions.join('; '));
+    field('head-to-head-total').textContent = stats.total ? I18n.t('{0} completed matches', stats.total) : I18n.t('No completed matches.');
   }
   form.addEventListener('submit', event => {
     event.preventDefault();
