@@ -206,7 +206,7 @@
                         class="nav-link {% if request.blueprint == 'admin' %}is-active{% endif %}">{{ _("Admin Console") }}</a>
                 </li>
                 {% endif %}
-                <li><a id="language-switch" class="nav-btn nav-btn-ghost" href="{{ language_switch }}" lang="{{ 'en' if locale == 'zh' else 'zh-CN' }}" aria-label="{{ _('Switch to English') if locale == 'zh' else _('Switch to Chinese') }}">{{ _('English' if locale == 'zh' else '中文') }}</a></li>
+                <li><a id="language-switch" class="nav-btn nav-btn-ghost" href="{{ language_switch }}" lang="{{ 'en' if locale == 'zh' else 'zh-CN' }}" aria-label="{{ _('Switch to English') if locale == 'zh' else _('Switch to Chinese') }}" title="{{ _('Switch to English') if locale == 'zh' else _('Switch to Chinese') }}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><text x="1" y="13" fill="currentColor" font-size="12" font-family="sans-serif">文</text><path d="m9 21 6-18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><text x="14" y="22" fill="currentColor" font-size="12" font-family="sans-serif">A</text></svg></a></li>
                 <li class="nav-divider hidden lg:block" aria-hidden="true"></li>
                 {% if current_user.is_authenticated %}
                 <li>
