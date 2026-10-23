@@ -11,6 +11,14 @@
   .bot-tab[aria-selected="true"] { color: #1d4ed8; border-bottom-color: #3b82f6; }
   .bot-tab:focus-visible { outline: 2px solid #3b82f6; outline-offset: -4px; }
   .bot-panel[hidden] { display: none; }
+  .bot-actions { display: flex; align-items: center; gap: .5rem; margin-top: 1rem; }
+  .bot-action { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #cbd5e1; border-radius: .375rem; color: #475569; background: #f8fafc; }
+  .bot-action:hover { background: #f1f5f9; }
+  .bot-action-new { color: #fff; background: #16a34a; border-color: #16a34a; }
+  .bot-action-new:hover { background: #22c55e; }
+  .bot-action:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+  .bot-action svg { width: 18px; height: 18px; }
+  .bot-action-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 </style>
 <div class="max-w-screen-lg mx-auto">
 
@@ -49,12 +57,18 @@
       <p class="mt-4 text-gray-700 whitespace-pre-wrap break-words">{{ bot.description }}</p>
     {% endif %}
 
-    {% if current_user.is_authenticated and current_user.id == bot.user_id %}
-      <div class="mt-4">
+      <div class="bot-actions">
+        {% if current_user.is_authenticated and current_user.id == bot.user_id %}
         <a href="{{ url_for('upload.new_version_page', bot_id=bot.id) }}"
-           class="inline-block px-3 py-1 bg-green-600 text-white rounded hover:bg-green-500 text-sm">{{ _("New Version") }}</a>
+           class="bot-action bot-action-new" title="{{ _('New Version') }}" aria-label="{{ _('New Version') }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        </a>
+        {% endif %}
+        <button id="copy-bot-id" type="button" class="bot-action" data-bot-id="{{ bot.id }}" title="{{ _('Copy Bot ID') }}" aria-label="{{ _('Copy Bot ID') }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="copy-bot-id-symbol" d="M9 9h12v12H9zM5 15H3V3h12v2"/></svg>
+        </button>
+        <span id="copy-bot-id-status" class="bot-action-status" role="status"></span>
       </div>
-    {% endif %}
   </div>
 
   <!-- Rating history -->
@@ -208,22 +222,11 @@
   });
 </script>
 
-{% if bot.source_code %}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const button = document.getElementById('copy-code');
     const source = document.getElementById('bot-source');
-    if (!button || !source) return;
-
-    button.addEventListener('click', async function () {
-      const text = source.textContent;
-      const flash = function (label) {
-        button.textContent = label;
-        setTimeout(function () { button.textContent = I18n.t("Copy"); }, 1500);
-      };
-      try {
-        // navigator.clipboard is only exposed on secure origins, so a page served
-        // over plain http on a LAN address needs the execCommand fallback.
+    async function copyText(text) {
         if (navigator.clipboard && window.isSecureContext) {
           await navigator.clipboard.writeText(text);
         } else {
@@ -233,21 +236,49 @@
           ta.style.position = 'fixed';
           ta.style.left = '-9999px';
           document.body.appendChild(ta);
-          ta.select();
-          if (!document.execCommand('copy')) {
-            document.body.removeChild(ta);
-            throw new Error(I18n.t("copy command rejected"));
+          const focused = document.activeElement;
+          try {
+            ta.select();
+            if (!document.execCommand('copy')) throw new Error(I18n.t("copy command rejected"));
+          } finally {
+            ta.remove();
+            focused?.focus({preventScroll: true});
           }
-          document.body.removeChild(ta);
         }
-        flash(I18n.t("Copied!"));
-      } catch (err) {
-        flash(I18n.t("Copy failed"));
+    }
+    if (button && source) button.addEventListener('click', async function () {
+      try {
+        await copyText(source.textContent);
+        button.textContent = I18n.t("Copied!");
+      } catch {
+        button.textContent = I18n.t("Copy failed");
       }
+      setTimeout(() => { button.textContent = I18n.t("Copy"); }, 1500);
+    });
+    const idButton = document.getElementById('copy-bot-id');
+    const symbol = document.getElementById('copy-bot-id-symbol');
+    const status = document.getElementById('copy-bot-id-status');
+    const originalPath = symbol.getAttribute('d');
+    let reset;
+    idButton.addEventListener('click', async function () {
+      clearTimeout(reset);
+      try {
+        await copyText(idButton.dataset.botId);
+        symbol.setAttribute('d', 'm5 12 4 4L19 6');
+        status.textContent = I18n.t("Copied!");
+      } catch {
+        symbol.setAttribute('d', originalPath);
+        status.textContent = I18n.t("Copy failed");
+      }
+      idButton.title = status.textContent;
+      reset = setTimeout(() => {
+        symbol.setAttribute('d', originalPath);
+        idButton.title = I18n.t('Copy Bot ID');
+        status.textContent = '';
+      }, 1500);
     });
   });
 </script>
-{% endif %}
 
 {% if bot.is_owner %}
 <script>

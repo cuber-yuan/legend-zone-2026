@@ -46,7 +46,7 @@
            inventing one. */
         .site-nav {
             --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            position: relative;
+            position: sticky; top: 0; z-index: 50;
             background: linear-gradient(90deg, #1e40af, #2563eb);
         }
         /* A bright edge keeps the bar from melting into the gray page below it. */
@@ -97,7 +97,8 @@
             outline: 2px solid #bae6fd; outline-offset: 3px; border-radius: 0.3rem;
         }
         .nav-btn {
-            display: inline-flex; align-items: center; gap: 0.35rem;
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
+            min-height: 2rem; line-height: 1.25;
             padding: 0.38rem 0.8rem; border-radius: 0.5rem;
             font-family: var(--mono); font-size: 0.64rem; font-weight: 700;
             letter-spacing: 0.12em; text-transform: uppercase;
@@ -105,12 +106,18 @@
             transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease, transform 0.1s ease;
         }
         .nav-btn:active { transform: translateY(1px); }
+        html:lang(zh-CN) { --ui-font-zh: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
         html:lang(zh-CN) .nav-link, html:lang(zh-CN) .nav-btn {
-            font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+            font-family: var(--ui-font-zh);
             font-weight: 500; letter-spacing: 0.04em;
         }
         html:lang(zh-CN) .nav-link { font-size: 0.875rem; }
         html:lang(zh-CN) .nav-btn { font-size: 0.75rem; }
+        html:lang(zh-CN) :is(.dialog-step, .dialog-label, .seat-label, .gt-role,
+            .games-meta, .games-count, .rating-meta, .rating-count, .lm-count) {
+            font-family: var(--ui-font-zh); font-size: 0.75rem;
+            font-weight: 500; letter-spacing: 0.02em;
+        }
         .nav-settings { position: relative; }
         #settings-toggle { padding: 0.3rem 0.5rem; }
         #settings-toggle svg { width: 20px; height: 20px; }
@@ -164,6 +171,7 @@
         }
         @keyframes navIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
         .nav-menu > li { animation: navIn 0.34s ease backwards; }
+        .nav-menu > li:not(.nav-divider) { display: flex; align-items: center; }
         .nav-menu > li:nth-child(1) { animation-delay: 0.03s; }
         .nav-menu > li:nth-child(2) { animation-delay: 0.07s; }
         .nav-menu > li:nth-child(3) { animation-delay: 0.11s; }
