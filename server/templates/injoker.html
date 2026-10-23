@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Injoker{% endblock %}
+{% block title %}{{ _("Injoker") }}{% endblock %}
 
 {% block content %}
 <div class="max-w-screen-lg mx-auto mt-8">
-    <h1 class="text-3xl font-bold text-center mb-6">Injoker</h1>
+    <h1 class="text-3xl font-bold text-center mb-6">{{ _("Injoker") }}</h1>
     <p class="text-center text-gray-700 mb-8">
-        Master the art of playing Invoker in Dota 2! Practice quick spell combinations, unleash devastating abilities. Hone your skills to become the true Invoker, not an "Injoker".
+        {{ _("Master the art of playing Invoker in Dota 2! Practice quick spell combinations, unleash devastating abilities. Hone your skills to become the true Invoker, not an \"Injoker\".") }}
     </p>
     <div id="phaser-container" style="width: 800px; height: 600px; margin: 0 auto;"></div>
     <!-- Add the spells.png image below the canvas -->
     <div class="text-center mt-6">
-        <img src="/static/injoker/spells.png" alt="Spells" style="max-width: 100%; height: auto; margin: 0 auto; display: block;">
+        <img src="/static/injoker/spells.png" alt="{{ _("Spells") }}" style="max-width: 100%; height: auto; margin: 0 auto; display: block;">
     </div>
 </div>
 
@@ -98,57 +98,57 @@
 
         // Display 6 images at the bottom of the canvas with text labels
         this.add.image(bottomPositions[0].x, bottomPositions[0].y, 'bottom1').setScale(0.5);
-        this.add.text(bottomPositions[0].x - 30, bottomPositions[0].y - 40, 'Q', { 
-            font: '16px Arial', 
-            fill: '#ffffff', 
+        this.add.text(bottomPositions[0].x - 30, bottomPositions[0].y - 40, 'Q', {
+            font: "16px Arial",
+            fill: '#ffffff',
             shadow: { offsetX: 3, offsetY: 3, color: '#000000', blur: 4, stroke: true, fill: true }
         }).setDepth(2);
 
         this.add.image(bottomPositions[1].x, bottomPositions[1].y, 'bottom2').setScale(0.5);
-        this.add.text(bottomPositions[1].x - 30, bottomPositions[1].y - 40, 'W', { 
-            font: '16px Arial', 
-            fill: '#ffffff', 
+        this.add.text(bottomPositions[1].x - 30, bottomPositions[1].y - 40, 'W', {
+            font: "16px Arial",
+            fill: '#ffffff',
             shadow: { offsetX: 3, offsetY: 3, color: '#000000', blur: 4, stroke: true, fill: true }
         }).setDepth(2);
 
         this.add.image(bottomPositions[2].x, bottomPositions[2].y, 'bottom3').setScale(0.5);
-        this.add.text(bottomPositions[2].x - 30, bottomPositions[2].y - 40, 'E', { 
-            font: '16px Arial', 
-            fill: '#ffffff', 
+        this.add.text(bottomPositions[2].x - 30, bottomPositions[2].y - 40, 'E', {
+            font: "16px Arial",
+            fill: '#ffffff',
             shadow: { offsetX: 3, offsetY: 3, color: '#000000', blur: 4, stroke: true, fill: true }
         }).setDepth(2);
 
         this.add.image(bottomPositions[3].x, bottomPositions[3].y, 'bottom4').setScale(0.5);
-        this.add.text(bottomPositions[3].x - 30, bottomPositions[3].y - 40, 'D', { 
-            font: '16px Arial', 
-            fill: '#ffffff', 
+        this.add.text(bottomPositions[3].x - 30, bottomPositions[3].y - 40, 'D', {
+            font: "16px Arial",
+            fill: '#ffffff',
             shadow: { offsetX: 3, offsetY: 3, color: '#000000', blur: 4, stroke: true, fill: true }
         }).setDepth(2);
 
         this.add.image(bottomPositions[4].x, bottomPositions[4].y, 'bottom5').setScale(0.5);
-        this.add.text(bottomPositions[4].x - 30, bottomPositions[4].y - 40, 'F', { 
-            font: '16px Arial', 
-            fill: '#ffffff', 
+        this.add.text(bottomPositions[4].x - 30, bottomPositions[4].y - 40, 'F', {
+            font: "16px Arial",
+            fill: '#ffffff',
             shadow: { offsetX: 3, offsetY: 3, color: '#000000', blur: 4, stroke: true, fill: true }
         }).setDepth(2);
 
         this.add.image(bottomPositions[5].x, bottomPositions[5].y, 'bottom6').setScale(0.5);
-        this.add.text(bottomPositions[5].x - 30, bottomPositions[5].y - 40, 'R', { 
-            font: '16px Arial', 
-            fill: '#ffffff', 
+        this.add.text(bottomPositions[5].x - 30, bottomPositions[5].y - 40, 'R', {
+            font: "16px Arial",
+            fill: '#ffffff',
             shadow: { offsetX: 3, offsetY: 3, color: '#000000', blur: 4, stroke: true, fill: true }
         }).setDepth(2);
 
         // Add a status text at the top of the canvas
-        statusText = this.add.text(400, 40, 'Waiting for battle...', {
-            font: '20px Arial',
+        statusText = this.add.text(400, 40, I18n.t("Waiting for battle..."), {
+            font: "20px Arial",
             fill: '#ffffff',
             align: 'center'
         }).setOrigin(0.5);
 
         // Add average time and success count text below the status text
-        averageTimeText = this.add.text(400, 70, 'AVG of 0: N/A', {
-            font: '16px Arial',
+        averageTimeText = this.add.text(400, 70, I18n.t("AVG of 0: N/A"), {
+            font: "16px Arial",
             fill: '#ffffff',
             align: 'center'
         }).setOrigin(0.5);
@@ -179,7 +179,7 @@
                 imageKey = 'imageE';
                 break;
             default:
-                console.log(`Unhandled key: ${key}`);
+                console.log(I18n.t("Unhandled key: {0}", key));
                 return; // Exit the function if the key is not handled
         }
 
@@ -210,9 +210,9 @@
 
     function displayQueueContents() {
         if (queue.length === 0) {
-            console.log("The queue is empty.");
+            console.log(I18n.t("The queue is empty."));
         } else {
-            console.log("Current queue contents (sorted):");
+            console.log(I18n.t("Current queue contents (sorted):"));
 
             // Create a mapping for sorting based on Q, W, E order
             const sortOrder = { imageQ: 1, imageW: 2, imageE: 3 };
@@ -224,7 +224,7 @@
 
             // Output the sorted queue
             sortedQueue.forEach((key, index) => {
-                console.log(`Position ${index + 1}: ${key}`);
+                console.log(I18n.t("Position {0}: {1}", index + 1, key));
             });
         }
     }
@@ -246,7 +246,7 @@
             if (scene.textures.exists(queueKey)) {
                 // If the new image is the same as the current D image, return early
                 if (dImage && dImage.texture.key === queueKey) {
-                    console.log(`The new image (${queueKey}) is the same as the current D image. No changes made.`);
+                    console.log(I18n.t("The new image ({0}) is the same as the current D image. No changes made.", queueKey));
                     return;
                 }
 
@@ -262,17 +262,17 @@
                 // Place the new image at D position
                 dImage = scene.add.image(bottomPositions[3].x, bottomPositions[3].y, queueKey).setScale(0.5);
             } else {
-                console.log(`No image found for queue state: ${queueKey}`);
+                console.log(I18n.t("No image found for queue state: {0}", queueKey));
             }
         } else {
-            console.log("The queue is empty. No image to display at D position.");
+            console.log(I18n.t("The queue is empty. No image to display at D position."));
         }
     }
 
     function checkMatch(key, scene) {
         // Prevent further actions if skill release is disabled
         if (!canReleaseSkill) {
-            console.log('Skill release is disabled. Wait for the next skill.');
+            console.log(I18n.t("Skill release is disabled. Wait for the next skill."));
             return;
         }
 
@@ -286,14 +286,14 @@
 
         // Check if the expected image matches the center image
         if (expectedImageKey && expectedImageKey === centerImageKey) {
-            console.log(`Success! ${key} matches the center image.`);
+            console.log(I18n.t("Success! {0} matches the center image.", key));
 
             // Calculate the elapsed time
             const elapsedTime = (performance.now() - startTime) / 1000;
 
             // Update the status text to show success and elapsed time
             if (statusText) {
-                statusText.setText(`Skill released successfully in ${elapsedTime.toFixed(2)} seconds`);
+                statusText.setText(I18n.t("Skill released successfully in {0} seconds", elapsedTime.toFixed(2)));
             }
 
             // Play the invoke.mp3 sound
@@ -307,7 +307,7 @@
             // Update the average time and success count text
             if (averageTimeText) {
                 const averageTime = totalTime / matchCount;
-                averageTimeText.setText(`AVG of ${matchCount}: ${averageTime.toFixed(2)}`);
+                averageTimeText.setText(I18n.t("AVG of {0}: {1}", matchCount, averageTime.toFixed(2)));
             }
 
             // Disable skill release until a new skill is generated
@@ -320,7 +320,7 @@
                 canReleaseSkill = true; // Re-enable skill release
             }, delay);
         } else {
-            console.log(`Failure! ${key} does not match the center image.`);
+            console.log(I18n.t("Failure! {0} does not match the center image.", key));
         }
     }
 
@@ -359,7 +359,7 @@
 
         // Ensure the status text is reset to the default message
         if (statusText) {
-            statusText.setText('Use this skill to defeat the opponent');
+            statusText.setText(I18n.t("Use this skill to defeat the opponent"));
         }
     }
 </script>

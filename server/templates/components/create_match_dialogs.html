@@ -6,18 +6,18 @@
         <div class="dialog-body">
             <div class="dialog-eyebrow">
                 <div>
-                    <h3 id="dialog-title-game" class="dialog-title">Create a match</h3>
+                    <h3 id="dialog-title-game" class="dialog-title">{{ _("Create a match") }}</h3>
                 </div>
-                <span class="dialog-step">Step 1 · Game</span>
+                <span class="dialog-step">{{ _("Step 1 · Game") }}</span>
             </div>
             <div class="dialog-head">
-                <span class="dialog-label">Choose a game</span>
-                <div id="game-grid" class="game-grid" role="group" aria-label="Games"></div>
+                <span class="dialog-label">{{ _("Choose a game") }}</span>
+                <div id="game-grid" class="game-grid" role="group" aria-label="{{ _("Games") }}"></div>
             </div>
             <div class="dialog-foot">
                 <div class="dialog-actions">
                     <button id="btn-modal-create" type="button" class="dlg-btn dlg-btn-primary" disabled>
-                        Continue
+                        {{ _("Continue") }}
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12l-7.5 7.5M21 12H3"/></svg>
                     </button>
                 </div>
@@ -34,19 +34,19 @@
         <div class="dialog-body">
             <div class="dialog-eyebrow">
                 <div>
-                    <h3 id="dialog-title-seats" class="dialog-title">Create a match</h3>
-                    <p class="dialog-sub" id="player-modal-game-name">Loading…</p>
+                    <h3 id="dialog-title-seats" class="dialog-title">{{ _("Create a match") }}</h3>
+                    <p class="dialog-sub" id="player-modal-game-name">{{ _("Loading…") }}</p>
                 </div>
-                <span class="dialog-step">{{ 'Seats' if create_match_game else 'Step 2 · Seats' }}</span>
+                <span class="dialog-step">{{ _('Seats' if create_match_game else 'Step 2 · Seats') }}</span>
             </div>
             <div class="dialog-head">
-                <span class="dialog-label" id="player-slots-label">Contestants</span>
+                <span class="dialog-label" id="player-slots-label">{{ _("Contestants") }}</span>
                 <div id="player-slots" class="seat-stack" role="group" aria-labelledby="player-slots-label"></div>
             </div>
             <div class="dialog-foot">
                 <span class="dialog-note" id="lineup-note"></span>
                 <div class="dialog-actions">
-                    <button id="btn-start-game" type="button" class="dlg-btn dlg-btn-primary">Start game</button>
+                    <button id="btn-start-game" type="button" class="dlg-btn dlg-btn-primary">{{ _("Start game") }}</button>
                 </div>
             </div>
         </div>

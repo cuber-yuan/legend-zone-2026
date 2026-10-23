@@ -28,7 +28,7 @@ class ReplayController {
      */
     constructor({ onRender, baseIntervalMs = 800, counterId = 'replayCounter', onIntervalChange = null }) {
         if (typeof onRender !== 'function') {
-            throw new Error('ReplayController: onRender is required');
+            throw new Error("ReplayController: onRender is required");
         }
         this.onRender = onRender;
         this.baseIntervalMs = baseIntervalMs;
@@ -63,13 +63,13 @@ class ReplayController {
         on('replaySlider', 'input', (e) => this.goto(parseInt(e.target.value, 10)));
         on('replaySpeed', 'change', (e) => this.setSpeed(parseFloat(e.target.value) || 1));
         on('replayControls', 'keydown', (e) => {
-            if (e.target.closest('[data-replay-debug]')) return;
-            if (e.target.matches('input, select, textarea, a')) return;
+            if (e.target.closest("[data-replay-debug]")) return;
+            if (e.target.matches("input, select, textarea, a")) return;
             if (e.key === 'ArrowLeft') { e.preventDefault(); this.step(-1); }
             else if (e.key === 'ArrowRight') { e.preventDefault(); this.step(1); }
             else if (e.key === ' ' && e.target.id === 'replayControls') { e.preventDefault(); this.toggle(); }
         });
-        on('replayControls', 'replay:seek', (e) => {
+        on('replayControls', "replay:seek", (e) => {
             if (Number.isInteger(e.detail?.index)) this.goto(e.detail.index);
         });
         this._syncUI();
@@ -174,8 +174,8 @@ class ReplayController {
         const btn = document.getElementById('btnPlayPause');
         if (!btn) return;
         const replay = !playing && this.maxIndex > 0 && this.index >= this.maxIndex;
-        const label = playing ? 'Pause' : replay ? 'Replay' : 'Play';
-        const action = playing ? 'Pause replay' : replay ? 'Replay from beginning' : 'Play replay';
+        const label = I18n.t(playing ? 'Pause' : replay ? 'Replay' : 'Play');
+        const action = playing ? I18n.t("Pause replay") : replay ? I18n.t("Replay from beginning") : I18n.t("Play replay");
         btn.setAttribute('aria-label', action);
         btn.title = action;
         const playIcon = btn.querySelector('.rp-icon-play');
@@ -194,14 +194,14 @@ class ReplayController {
         if (slider) {
             slider.value = this.index;
             slider.disabled = this.maxIndex <= 0;
-            slider.setAttribute('aria-valuetext', `${this.index} of ${this.maxIndex}`);
+            slider.setAttribute('aria-valuetext', I18n.t('{0} of {1}', this.index, this.maxIndex));
         }
         const root = document.getElementById('replayControls');
         if (root) {
             root.style.setProperty('--rp-progress', `${this.maxIndex ? this.index / this.maxIndex * 100 : 0}%`);
             root.dataset.frame = this.index;
             root.dataset.maxFrame = this.maxIndex;
-            root.dispatchEvent(new CustomEvent('replay:frame', { detail: { index: this.index, maxIndex: this.maxIndex } }));
+            root.dispatchEvent(new CustomEvent("replay:frame", { detail: { index: this.index, maxIndex: this.maxIndex } }));
         }
         const speed = document.getElementById('replaySpeed');
         if (speed) speed.value = String(this.speed);

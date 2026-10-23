@@ -14,6 +14,7 @@ from .config import ROOT
 from .avatars import Avatars
 from .game_state import replay_frames
 from .games import GAMES, get_game
+from .i18n import catalog, page_url, translate
 from .matches import list_matches
 from .security import can_read_source, current_user, require_admin, require_user
 from .util import parse_json
@@ -74,6 +75,11 @@ class Viewer(SimpleNamespace):
 
 
 def render(request, template, endpoint="main.home", **context):
+    locale = getattr(request.state, "locale", "en")
+    messages = catalog(locale)
+    path = request.scope.get("raw_path", request.url.path.encode()).decode("ascii")
+    query = request.scope.get("query_string", b"").decode("ascii")
+    alternate = "zh" if locale == "en" else "en"
     user = current_user(request)
     viewer = Viewer(
         **(user or {"id": None, "username": ""}),
@@ -86,7 +92,15 @@ def render(request, template, endpoint="main.home", **context):
     )
     context.update(
         current_user=viewer,
-        url_for=url_for,
+        url_for=lambda name, **values: page_url(url_for(name, **values), locale),
+        _=lambda key, *values: translate(messages, key, *values),
+        locale=locale,
+        translations=messages,
+        language_switch=page_url(path, alternate) + ("?" + query if query else ""),
+        language_alternates={
+            language: str(request.base_url).rstrip("/") + page_url(path, language)
+            for language in ("en", "zh")
+        },
         request=SimpleNamespace(
             endpoint=endpoint, blueprint=endpoint.split(".")[0], path=request.url.path
         ),

@@ -1,80 +1,80 @@
 {% extends 'base.html' %}
-{% block title %}Admin Console{% endblock %}
+{% block title %}{{ _("Admin Console") }}{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
 <div class="max-w-screen-lg mx-auto mt-4">
   <section class="bg-white rounded-lg shadow-md overflow-hidden">
     <div class="px-5 py-5 sm:px-6 border-b border-slate-100">
-      <h1 class="text-xl sm:text-2xl font-semibold text-slate-900">Admin Console</h1>
+      <h1 class="text-xl sm:text-2xl font-semibold text-slate-900">{{ _("Admin Console") }}</h1>
     </div>
-    <div class="admin-tabs" role="tablist" aria-label="Administrator tools">
+    <div class="admin-tabs" role="tablist" aria-label="{{ _("Administrator tools") }}">
       <button type="button" id="database-tab" class="admin-tab" role="tab" aria-selected="true"
-              aria-controls="database-panel">Database</button>
+              aria-controls="database-panel">{{ _("Database") }}</button>
       <button type="button" id="settings-tab" class="admin-tab" role="tab" aria-selected="false"
-              aria-controls="settings-panel" tabindex="-1">Settings</button>
+              aria-controls="settings-panel" tabindex="-1">{{ _("Settings") }}</button>
       <button type="button" id="danger-tab" class="admin-tab" role="tab" aria-selected="false"
-              aria-controls="danger-panel" tabindex="-1">Dangerous Operations</button>
+              aria-controls="danger-panel" tabindex="-1">{{ _("Dangerous Operations") }}</button>
       <button type="button" id="bot-queue-tab" class="admin-tab" role="tab" aria-selected="false"
-              aria-controls="bot-queue-panel" tabindex="-1">Bot Match Queue</button>
+              aria-controls="bot-queue-panel" tabindex="-1">{{ _("Bot Match Queue") }}</button>
     </div>
     <div id="database-panel" role="tabpanel" aria-labelledby="database-tab" tabindex="0"
          data-tables-url="{{ url_for('admin.database_tables') }}"
          data-table-url="{{ url_for('admin.database_table') }}">
       <div class="db-toolbar">
-        <label class="db-field">Table
-          <select id="db-table" disabled aria-label="Database table"><option>Loading…</option></select>
+        <label class="db-field">{{ _("Table") }}
+          <select id="db-table" disabled aria-label="{{ _("Database table") }}"><option>{{ _("Loading…") }}</option></select>
         </label>
-        <label class="db-field db-page-size">Rows
-          <select id="db-page-size" aria-label="Rows per page"><option>25</option><option>50</option><option>100</option></select>
+        <label class="db-field db-page-size">{{ _("Rows") }}
+          <select id="db-page-size" aria-label="{{ _("Rows per page") }}"><option>25</option><option>50</option><option>100</option></select>
         </label>
-        <button type="button" id="db-refresh" class="db-button" disabled>Refresh</button>
+        <button type="button" id="db-refresh" class="db-button" disabled>{{ _("Refresh") }}</button>
       </div>
-      <p class="db-note">Read-only. Password hashes and Bot source code are hidden. Long values are previewed.</p>
-      <div id="db-status" class="db-status" role="status" aria-live="polite">Loading tables…</div>
-      <div id="db-grid" class="db-grid" role="region" aria-label="Database records" tabindex="0" hidden>
+      <p class="db-note">{{ _("Read-only. Password hashes and Bot source code are hidden. Long values are previewed.") }}</p>
+      <div id="db-status" class="db-status" role="status" aria-live="polite">{{ _("Loading tables…") }}</div>
+      <div id="db-grid" class="db-grid" role="region" aria-label="{{ _("Database records") }}" tabindex="0" hidden>
         <table class="db-table"><thead id="db-head"></thead><tbody id="db-body"></tbody></table>
       </div>
       <div class="db-footer">
         <span id="db-summary" aria-live="polite"></span>
         <div class="db-pagination">
-          <button type="button" id="db-previous" class="db-button" disabled aria-label="Previous page">Previous</button>
+          <button type="button" id="db-previous" class="db-button" disabled aria-label="{{ _("Previous page") }}">{{ _("Previous") }}</button>
           <span id="db-page"></span>
-          <button type="button" id="db-next" class="db-button" disabled aria-label="Next page">Next</button>
+          <button type="button" id="db-next" class="db-button" disabled aria-label="{{ _("Next page") }}">{{ _("Next") }}</button>
         </div>
       </div>
     </div>
     <div id="settings-panel" role="tabpanel" aria-labelledby="settings-tab" tabindex="0" hidden>
       <form id="site-settings-form" class="db-toolbar site-settings-form">
-        <label class="db-field" for="chat-history-hours">Chat history (hours)
+        <label class="db-field" for="chat-history-hours">{{ _("Chat history (hours)") }}
           <input id="chat-history-hours" name="chat_history_hours" type="number" min="1" max="8760" step="1" required disabled aria-describedby="site-settings-note">
         </label>
-        <label class="db-field" for="ladder-interval-minutes">Automatic ladder interval (minutes)
+        <label class="db-field" for="ladder-interval-minutes">{{ _("Automatic ladder interval (minutes)") }}
           <input id="ladder-interval-minutes" name="ladder_interval_minutes" type="number" min="0" max="10080" step="1" required disabled aria-describedby="site-settings-note">
         </label>
-        <button type="submit" id="site-settings-save" class="db-button" disabled>Save</button>
-        <button type="button" id="site-settings-refresh" class="db-button">Refresh</button>
+        <button type="submit" id="site-settings-save" class="db-button" disabled>{{ _("Save") }}</button>
+        <button type="button" id="site-settings-refresh" class="db-button">{{ _("Refresh") }}</button>
       </form>
-      <p id="site-settings-note" class="db-note">Chat history: 1–8760 hours; expired messages remain in the database. Automatic ladder: 0–10080 minutes; 0 disables it. Settings apply within 30 seconds. Changing the ladder interval starts a new countdown and leaves running matches active.</p>
-      <p id="site-settings-status" class="db-status" role="status" aria-live="polite">Loading site settings…</p>
+      <p id="site-settings-note" class="db-note">{{ _("Chat history: 1–8760 hours; expired messages remain in the database. Automatic ladder: 0–10080 minutes; 0 disables it. Settings apply within 30 seconds. Changing the ladder interval starts a new countdown and leaves running matches active.") }}</p>
+      <p id="site-settings-status" class="db-status" role="status" aria-live="polite">{{ _("Loading site settings…") }}</p>
     </div>
     <div id="bot-queue-panel" role="tabpanel" aria-labelledby="bot-queue-tab" tabindex="0" hidden>
       <form id="bot-queue-form" class="db-toolbar">
-        <label class="db-field" for="queue-bot-id">Bot ID
+        <label class="db-field" for="queue-bot-id">{{ _("Bot ID") }}
           <input id="queue-bot-id" name="bot_id" type="text" maxlength="100" required autocomplete="off" aria-describedby="queue-bot-info">
         </label>
-        <button type="button" id="queue-check-bot" class="db-button">Check Bot</button>
-        <label class="db-field" for="queue-match-count">Matches
+        <button type="button" id="queue-check-bot" class="db-button">{{ _("Check Bot") }}</button>
+        <label class="db-field" for="queue-match-count">{{ _("Matches") }}
           <input id="queue-match-count" name="count" type="number" min="1" max="100" step="1" value="1" required>
         </label>
-        <button type="submit" id="queue-submit" class="db-button" disabled>Queue Matches</button>
+        <button type="submit" id="queue-submit" class="db-button" disabled>{{ _("Queue Matches") }}</button>
       </form>
-      <p id="queue-bot-info" class="db-note" role="status" aria-live="polite">Enter a Bot ID and check its game before queueing matches.</p>
-      <p class="db-note">Each match randomly selects another Bot in the same game; opponents may repeat and seats are randomized. Matches run one at a time using the latest versions and normal rating rules. Up to 100 matches per batch and 10 active batches. The queue survives page refreshes but is discarded when the server restarts.</p>
+      <p id="queue-bot-info" class="db-note" role="status" aria-live="polite">{{ _("Enter a Bot ID and check its game before queueing matches.") }}</p>
+      <p class="db-note">{{ _("Each match randomly selects another Bot in the same game; opponents may repeat and seats are randomized. Matches run one at a time using the latest versions and normal rating rules. Up to 100 matches per batch and 10 active batches. The queue survives page refreshes but is discarded when the server restarts.") }}</p>
       <p id="queue-status" class="db-status" role="status" aria-live="polite"></p>
-      <div class="db-toolbar"><button type="button" id="queue-refresh" class="db-button">Refresh Queue</button></div>
-      <div class="db-grid" role="region" aria-label="Bot match batches" tabindex="0">
+      <div class="db-toolbar"><button type="button" id="queue-refresh" class="db-button">{{ _("Refresh Queue") }}</button></div>
+      <div class="db-grid" role="region" aria-label="{{ _("Bot match batches") }}" tabindex="0">
         <table class="db-table">
-          <thead><tr><th>Bot / Game</th><th>Progress</th><th>Status</th><th>Match</th></tr></thead>
+          <thead><tr><th>{{ _("Bot / Game") }}</th><th>{{ _("Progress") }}</th><th>{{ _("Status") }}</th><th>{{ _("Match") }}</th></tr></thead>
           <tbody id="queue-batches"></tbody>
         </table>
       </div>
@@ -85,26 +85,26 @@
         ('reset-ratings', 'Reset Bot ratings', 'RESET RATINGS', 'Reset every Bot version in this game to 1500. Previous rating history is deleted and replaced with a new baseline. Match records are retained.')
       ] %}
       <form class="danger-form" data-action="{{ action }}" data-phrase="{{ phrase }}">
-        <h2>{{ title }}</h2>
-        <p class="db-note">{{ description }} This cannot be undone.</p>
+        <h2>{{ _(title) }}</h2>
+        <p class="db-note">{{ _(description) }} {{ _("This cannot be undone.") }}</p>
         <div class="db-toolbar">
-          <label class="db-field" for="{{ action }}-game">Game
-            <select id="{{ action }}-game" name="game" required aria-label="Game">
-              <option value="">Select a game</option>
-              {% for game in games %}<option value="{{ game.name }}">{{ game.name }}</option>{% endfor %}
+          <label class="db-field" for="{{ action }}-game">{{ _("Game") }}
+            <select id="{{ action }}-game" name="game" required aria-label="{{ _("Game") }}">
+              <option value="">{{ _("Select a game") }}</option>
+              {% for game in games %}<option value="{{ game.name }}">{{ _(game.name) }}</option>{% endfor %}
             </select>
           </label>
-          <label class="db-field" for="{{ action }}-confirmation">Confirmation text
+          <label class="db-field" for="{{ action }}-confirmation">{{ _("Confirmation text") }}
             <input id="{{ action }}-confirmation" name="confirmation" type="text" required autocomplete="off"
                    spellcheck="false" aria-describedby="{{ action }}-hint">
           </label>
-          <button type="submit" class="db-button danger-button" disabled>{{ title }}</button>
+          <button type="submit" class="db-button danger-button" disabled>{{ _(title) }}</button>
         </div>
-        <p id="{{ action }}-hint" class="db-note danger-hint">Select a game to see the required confirmation text.</p>
+        <p id="{{ action }}-hint" class="db-note danger-hint">{{ _("Select a game to see the required confirmation text.") }}</p>
         <p class="db-status" role="status" aria-live="polite"></p>
       </form>
       {% endfor %}
-      <p class="db-note">Operations are blocked while this game has active or unsaved matches, or queued Bot batches. Rating resets also require all ratings to be settled.</p>
+      <p class="db-note">{{ _("Operations are blocked while this game has active or unsaved matches, or queued Bot batches. Rating resets also require all ratings to be settled.") }}</p>
     </div>
   </section>
 </div>

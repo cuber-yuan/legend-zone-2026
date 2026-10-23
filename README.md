@@ -4,6 +4,7 @@ Legend Zone is a bot battle platform. Upload a Python or C++ program to compete 
 
 ## Features
 
+- English and Simplified Chinese pages under `/en/` and `/zh/`, with one-click language switching and remembered preference.
 - Six competitive games: Gomoku, Tic Tac Toe, Connect Four, Snake, Mini Snake, and Tank Battle. All game judges are implemented in Python.
 - Single-file and ZIP bot uploads, immutable versions, private source code, and authorized downloads. Upload requests are limited to 16 MiB.
 - Bot battles, human vs. bot matches, two-player matches, and automatic ladder matches. Selecting an older bot version disables rating changes for both players.
@@ -32,7 +33,7 @@ python -m server.cli init --admin admin
 python -m server.cli serve
 ```
 
-Open <http://127.0.0.1:8000>. Initialization prompts you to set the administrator password; there is no default password. The initialization command refuses to overwrite an existing database. Normal startup only validates the schema and does not run migrations.
+Open <http://127.0.0.1:8000>. Legacy page URLs redirect to the preferred language (English by default). Initialization prompts you to set the administrator password; there is no default password. The initialization command refuses to overwrite an existing database. Normal startup only validates the schema and does not run migrations.
 
 Initialization creates the database and a persistent session signing key in `data/`. Do not delete these runtime files or commit them to Git.
 
@@ -59,6 +60,7 @@ server/           API, file storage, bot execution, and shared match lifecycle
 server/templates/ Pages and shared template components
 server/static/    Styles, Phaser canvases, and page interactions
 web/              Styles and local frontend dependency builds
+server/locales/  Shared English and Simplified Chinese UI messages
 schema.sql        Current SQLite schema
 requirements.lock Pinned production Python dependencies
 ```

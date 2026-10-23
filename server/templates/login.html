@@ -4,13 +4,13 @@
 
 {% block auth_fields %}
     <div class="auth-field">
-        <label for="username">Username</label>
+        <label for="username">{{ _("Username") }}</label>
         <input type="text" id="username" name="username" autocomplete="username" required maxlength="40" autocapitalize="none" spellcheck="false">
     </div>
     <div class="auth-field">
-        <label for="password">Password</label>
+        <label for="password">{{ _("Password") }}</label>
         <input type="password" id="password" name="password" autocomplete="current-password" required maxlength="256">
     </div>
 {% endblock %}
 
-{% block auth_switch %}Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a>{% endblock %}
+{% block auth_switch %}{{ _("Don't have an account?") }} <a href="{{ url_for('auth.register') }}">{{ _("Register") }}</a>{% endblock %}

@@ -3,7 +3,7 @@ const COLS = 7, ROWS = 6, CELL = 80, BOARD_X = 40, BOARD_Y = 100;
 const emptyBoard = () => Array.from({ length: ROWS }, () => Array(COLS).fill(0));
 const copyBoard = value => value.map(row => row.slice());
 const settings = window.CONNECT4_CONFIG;
-const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
 let board = emptyBoard(), displayBoard = emptyBoard(), lastMove = null;
 let gameOver = true, userId = null, currentGameId = null, currentPlayer = 1;
 let playerTypes = { '1': 'bot', '2': 'bot' };
@@ -22,7 +22,7 @@ function canPlay() {
 }
 
 function resultMessage(winner) {
-  return winner === 1 || winner === 2 ? `${playerName(winner)} wins` : 'Draw';
+  return winner === 1 || winner === 2 ? `${playerName(winner)} wins` : I18n.t("Draw");
 }
 
 function parsePlayers(value) {
@@ -39,7 +39,7 @@ function playerName(side) {
 function applyPlayers(value) {
   if (!value) return;
   try { players = parsePlayers(value); }
-  catch (error) { console.error('Failed to parse match players:', error); }
+  catch (error) { console.error(I18n.t("Failed to parse match players:"), error); }
 }
 
 function renderHUD(message) {
@@ -47,7 +47,7 @@ function renderHUD(message) {
     const side = Number(el.dataset.playerSlot);
     el.querySelector('.match-player-name').textContent = playerName(side);
   });
-  document.querySelectorAll('[data-column]').forEach(button => {
+  document.querySelectorAll("[data-column]").forEach(button => {
     button.disabled = !canPlay() || board[0][Number(button.dataset.column)] !== 0;
   });
   document.getElementById('spectatorBadge').style.display = isSpectator && !isReplayMode ? 'block' : 'none';
@@ -56,11 +56,11 @@ function renderHUD(message) {
   hint.style.display = showHint ? 'block' : 'none';
   if (!showHint) hint.textContent = '';
   else if (message) hint.textContent = message;
-  else if (isAnimating || frames.length) hint.textContent = 'Disc in motion…';
-  else if (awaitingMove) hint.textContent = 'Move submitted · waiting for the board';
+  else if (isAnimating || frames.length) hint.textContent = I18n.t("Disc in motion…");
+  else if (awaitingMove) hint.textContent = I18n.t("Move submitted · waiting for the board");
   else hint.textContent = playerTypes[String(currentPlayer)] === 'human'
-    ? `${playerName(currentPlayer)} to move · choose a column`
-    : `Waiting for ${playerName(currentPlayer)}…`;
+    ? I18n.t("{0} to move · choose a column", playerName(currentPlayer))
+    : I18n.t("Waiting for {0}…", playerName(currentPlayer));
   updatePreview(hoveredColumn);
 }
 
@@ -72,10 +72,10 @@ function makeDiscTexture(player) {
   gradient.addColorStop(0, colors[0]); gradient.addColorStop(0.3, colors[1]);
   gradient.addColorStop(0.78, colors[2]); gradient.addColorStop(1, colors[3]);
   ctx.beginPath(); ctx.arc(64, 64, 58, 0, Math.PI * 2); ctx.fillStyle = gradient; ctx.fill();
-  ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.stroke();
-  ctx.beginPath(); ctx.arc(64, 64, 45, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(15,23,42,0.15)'; ctx.stroke();
+  ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.stroke();
+  ctx.beginPath(); ctx.arc(64, 64, 45, 0, Math.PI * 2); ctx.strokeStyle = "rgba(15,23,42,0.15)"; ctx.stroke();
   ctx.beginPath(); ctx.arc(62, 60, 46, Math.PI * 1.1, Math.PI * 1.8);
-  ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 3; ctx.stroke();
   texture.refresh();
 }
 
@@ -85,7 +85,7 @@ function makeBoardTexture() {
   const gradient = ctx.createLinearGradient(0, 84, 640, 596);
   gradient.addColorStop(0, '#31517b'); gradient.addColorStop(0.45, '#233e63'); gradient.addColorStop(1, '#142b49');
   ctx.beginPath(); ctx.roundRect(24, 84, 592, 512, 22); ctx.fillStyle = gradient; ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,0.25)"; ctx.lineWidth = 2; ctx.stroke();
   ctx.globalCompositeOperation = 'destination-out';
   for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
     ctx.beginPath(); ctx.arc(centerX(x), centerY(y), CELL * 0.38, 0, Math.PI * 2); ctx.fill();
@@ -93,9 +93,9 @@ function makeBoardTexture() {
   ctx.globalCompositeOperation = 'source-over';
   for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
     ctx.beginPath(); ctx.arc(centerX(x), centerY(y), CELL * 0.395, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(4,16,34,0.55)'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.strokeStyle = "rgba(4,16,34,0.55)"; ctx.lineWidth = 3; ctx.stroke();
     ctx.beginPath(); ctx.arc(centerX(x), centerY(y) + 1, CELL * 0.4, 0.12, Math.PI - 0.12);
-    ctx.strokeStyle = 'rgba(147,197,253,0.16)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.strokeStyle = "rgba(147,197,253,0.16)"; ctx.lineWidth = 1.5; ctx.stroke();
   }
   texture.refresh();
 }
@@ -228,7 +228,7 @@ function pumpFrames() {
 function showResult(winner, error) {
   const result = document.getElementById('gameResult');
   result.classList.add('visible');
-  document.getElementById('resultTitle').textContent = error && !winner ? 'Match ended' : resultMessage(winner);
+  document.getElementById('resultTitle').textContent = error && !winner ? I18n.t("Match ended") : resultMessage(winner);
   const detail = document.getElementById('resultDetail');
   detail.textContent = error || '';
   detail.hidden = !error;
@@ -309,7 +309,7 @@ function startReplay(moves, winner, autoplay = true, error = null) {
   replayController.load(moves.length);
   if (!autoplay) replayController.goto(moves.length);
   replaySnap = false;
-  replayController.setStatus(`${error || resultMessage(winner)} · ${moves.length} drops`);
+  replayController.setStatus(I18n.t("{0} · {1} drops", error || resultMessage(winner), moves.length));
   if (autoplay) replayController.play();
   else showResult(winner, error);
   renderHUD();
@@ -323,7 +323,7 @@ function sendPlayerMove(column) {
   socket.emit('player_move', { user_id: userId, x: column, game_id: currentGameId });
 }
 
-document.querySelectorAll('[data-column]').forEach(button => {
+document.querySelectorAll("[data-column]").forEach(button => {
   const column = Number(button.dataset.column);
   button.addEventListener('click', () => sendPlayerMove(column));
   button.addEventListener('focus', () => updatePreview(column));

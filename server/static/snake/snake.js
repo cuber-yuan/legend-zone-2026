@@ -34,7 +34,7 @@ class SnakeScene extends Phaser.Scene {
         this.obstacleLayer = this.add.graphics();
         this.snake1Layer = this.add.graphics();
         this.snake2Layer = this.add.graphics();
-        this.waitingText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'Waiting for match…', {
+        this.waitingText = this.add.text(this.scale.width / 2, this.scale.height / 2, I18n.t("Waiting for match…"), {
             fontFamily: 'system-ui, sans-serif', fontSize: '15px', color: '#94a3b8'
         }).setOrigin(0.5);
     }
@@ -256,8 +256,8 @@ let playerTypes = { '1': 'bot', '2': 'bot' };
 // what matters is whether the local seat is human at all. Two human seats are
 // refused server-side, so at most one colour is steerable from this browser.
 function humanSeatName() {
-    if (playerTypes['1'] === 'human') return 'Blue';
-    if (playerTypes['2'] === 'human') return 'Red';
+    if (playerTypes['1'] === 'human') return I18n.t("Blue");
+    if (playerTypes['2'] === 'human') return I18n.t("Red");
     return null;
 }
 
@@ -278,7 +278,7 @@ function renderSteerHint() {
         return;
     }
     el.style.display = 'block';
-    el.textContent = `You steer ${humanSeatName()} — press W/A/S/D or the arrow keys each turn`;
+    el.textContent = I18n.t("You steer {0} — press W/A/S/D or the arrow keys each turn", humanSeatName());
 }
 
 // --- Canvas Size Helpers ---
@@ -293,7 +293,7 @@ let phaserGame;
 let maskRect = null;
 let maskText = null;
 
-function showPhaserMask(msg = "Waiting for new game...") {
+function showPhaserMask(msg = I18n.t("Waiting for new game...")) {
     const scene = phaserGame.scene.getScene('SnakeScene');
     if (!scene) return;
     hidePhaserMask();
@@ -328,7 +328,7 @@ socket.on('game_started', (data) => {
             fc.classList.remove('hidden');
         }
     } else {
-        console.error("SnakeScene or its updateFromState method is not available!");
+        console.error(I18n.t("SnakeScene or its updateFromState method is not available!"));
     }
 });
 
@@ -337,7 +337,7 @@ socket.on('update', (data) => {
         if (data.match_id && data.match_id !== MATCH_ID) return;
     } else {
         if (!currentGameId || data.game_id !== currentGameId) {
-            console.log(`Ignoring update for irrelevant game: ${data.game_id}`);
+            console.log(I18n.t("Ignoring update for irrelevant game: {0}", data.game_id));
             return;
         }
     }
@@ -356,7 +356,7 @@ socket.on('finish', (data) => {
         if (data.match_id && data.match_id !== MATCH_ID) return;
     } else {
         if (!currentGameId || data.game_id !== currentGameId) {
-            console.log(`Ignoring finish for irrelevant game: ${data.game_id}`);
+            console.log(I18n.t("Ignoring finish for irrelevant game: {0}", data.game_id));
             return;
         }
     }
@@ -366,7 +366,7 @@ socket.on('finish', (data) => {
     if (fc) fc.classList.add('hidden');
     _tryPlay(explosionAudio);
     let winner = data.winner;
-    let msg = winner == 0 ? 'Blue wins!' : (winner == 1 ? 'Red wins!' : 'Draw!');
+    let msg = winner == 0 ? I18n.t("Blue wins!") : (winner == 1 ? I18n.t("Red wins!") : I18n.t("Draw!"));
     if (data.error_msg) msg = data.error_msg;
     showPhaserMask(msg);
 });
@@ -438,7 +438,7 @@ function startReplay(displays, winner) {
     if (fc) fc.classList.add('hidden');
 
 
-    let msg = winner == 0 ? 'Blue wins!' : (winner == 1 ? 'Red wins!' : 'Draw!');
+    let msg = winner == 0 ? I18n.t("Blue wins!") : (winner == 1 ? I18n.t("Red wins!") : I18n.t("Draw!"));
     replayController.load(Math.max(0, displays.length - 1));
     replayController.setStatus(msg + ' (' + Math.max(0, displays.length - 1) + ' turns)');
     replayController.play();

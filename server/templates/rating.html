@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Rating{% endblock %}
+{% block title %}{{ _("Rating") }}{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='bot-rating.css') }}">
@@ -84,35 +84,35 @@
 
 <div class="rating-page max-w-screen-lg mx-auto mt-8 space-y-8">
   <header class="bg-gradient-to-r from-blue-600 to-blue-400 text-white p-6 sm:p-8 rounded-lg shadow-lg">
-    <div class="rating-meta uppercase text-blue-100 mb-3">The leaderboard</div>
-    <h1 class="text-3xl sm:text-4xl font-bold mb-3">Bot Rankings</h1>
+    <div class="rating-meta uppercase text-blue-100 mb-3">{{ _("The leaderboard") }}</div>
+    <h1 class="text-3xl sm:text-4xl font-bold mb-3">{{ _("Bot Rankings") }}</h1>
     <!-- <p class="text-sm sm:text-base text-blue-50">See which bots lead the arena. Every game has its own Elo ranking.</p> -->
     <div class="rating-meta flex flex-wrap gap-x-5 gap-y-2 mt-5 text-blue-100">
-      <span><strong class="text-white">{{ ratings|length }}</strong> games</span>
-      <span><strong class="text-white">{{ totals.bots }}</strong> bots</span>
+      <span><strong class="text-white">{{ ratings|length }}</strong> {{ _("games") }}</span>
+      <span><strong class="text-white">{{ totals.bots }}</strong> {{ _("bots") }}</span>
     </div>
   </header>
 
   {% if ratings %}
-  <nav class="rating-nav" aria-label="Jump to a game ranking">
+  <nav class="rating-nav" aria-label="{{ _("Jump to a game ranking") }}">
     {% for game, bot_list in ratings.items() %}
-    <a href="#ranking-{{ loop.index }}"><span>{{ game }}</span><span class="rating-nav-count">{{ bot_list|length }}</span></a>
+    <a href="#ranking-{{ loop.index }}"><span>{{ _(game) }}</span><span class="rating-nav-count">{{ bot_list|length }}</span></a>
     {% endfor %}
   </nav>
   {% for game, bot_list in ratings.items() %}
   <section id="ranking-{{ loop.index }}" class="rating-card bg-white rounded-lg overflow-hidden shadow-md" aria-labelledby="ranking-title-{{ loop.index }}">
     <div class="flex items-center justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5">
-      <h2 id="ranking-title-{{ loop.index }}" class="text-xl sm:text-2xl font-semibold text-gray-900">{{ game }}</h2>
-      <span class="rating-count">{{ bot_list|length }} {{ 'BOT' if bot_list|length == 1 else 'BOTS' }}</span>
+      <h2 id="ranking-title-{{ loop.index }}" class="text-xl sm:text-2xl font-semibold text-gray-900">{{ _(game) }}</h2>
+      <span class="rating-count">{{ bot_list|length }} {{ _('BOT' if bot_list|length == 1 else 'BOTS') }}</span>
     </div>
     {% if bot_list %}
-    <table class="rating-table text-gray-700" aria-label="{{ game }} bot rankings">
+    <table class="rating-table text-gray-700" aria-label="{{ _('{0} bot rankings', _(game)) }}">
       <thead class="bg-slate-50 text-slate-600">
         <tr>
-          <th scope="col" class="rating-rank-column">Rank</th>
-          <th scope="col">Bot</th>
-          <th scope="col" class="rating-score-column rating-score">Elo</th>
-          <th scope="col" class="rating-owner-column">Owner</th>
+          <th scope="col" class="rating-rank-column">{{ _("Rank") }}</th>
+          <th scope="col">{{ _("Bot") }}</th>
+          <th scope="col" class="rating-score-column rating-score">{{ _("Elo") }}</th>
+          <th scope="col" class="rating-owner-column">{{ _("Owner") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -122,9 +122,9 @@
           <td>
             <a href="{{ url_for('main.bot_detail', bot_id=bot.id) }}" class="rating-chip bot-rating-label"
                data-bot-rating="{{ bot.rating if bot.rating is not none else '' }}"
-               title="{{ 'Current rating: %.2f'|format(bot.rating) if bot.rating is not none else 'Rating unavailable' }}">
+               title="{{ _('Current rating: {0}', '%.2f'|format(bot.rating)) if bot.rating is not none else _('Rating unavailable') }}">
               {{ bot_icon() }}<span class="rating-name">{{ bot.name }}</span>
-              {% if bot.version %}<span class="rating-version">v{{ bot.version }}</span>{% endif %}
+              {% if bot.version %}<span class="rating-version">{{ _("v") }}{{ bot.version }}</span>{% endif %}
             </a>
             <div class="rating-mobile-owner">{{ owner_link(bot.owner) }}</div>
           </td>
@@ -135,16 +135,16 @@
       </tbody>
     </table>
     {% else %}
-    <p class="px-4 py-8 text-center text-sm text-gray-500">No bots ranked for this game yet.</p>
+    <p class="px-4 py-8 text-center text-sm text-gray-500">{{ _("No bots ranked for this game yet.") }}</p>
     {% endif %}
   </section>
   {% endfor %}
-  <p class="text-xs text-gray-500 text-center">Rankings show each bot's latest version, ordered by Elo.</p>
+  <p class="text-xs text-gray-500 text-center">{{ _("Rankings show each bot's latest version, ordered by Elo.") }}</p>
   {% else %}
   <section class="bg-white rounded-lg shadow-md px-6 py-12 text-center">
-    <h2 class="text-xl font-semibold text-gray-900 mb-2">The arena is waiting</h2>
-    <p class="text-sm text-gray-500 mb-5">No bots have entered the rankings yet. Create a bot to get started.</p>
-    <a href="{{ url_for('main.profile_root') if current_user.is_authenticated else url_for('auth.login') }}" class="inline-flex px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500">{{ 'Go to my bots' if current_user.is_authenticated else 'Sign in to create a bot' }}</a>
+    <h2 class="text-xl font-semibold text-gray-900 mb-2">{{ _("The arena is waiting") }}</h2>
+    <p class="text-sm text-gray-500 mb-5">{{ _("No bots have entered the rankings yet. Create a bot to get started.") }}</p>
+    <a href="{{ url_for('main.profile_root') if current_user.is_authenticated else url_for('auth.login') }}" class="inline-flex px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500">{{ _('Go to my bots' if current_user.is_authenticated else 'Sign in to create a bot') }}</a>
   </section>
   {% endif %}
 </div>

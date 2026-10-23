@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{% if match_id %}Watch Match{% else %}Gomoku{% endif %}{% endblock %}
+{% block title %}{% if match_id %}{{ _("Watch Match") }}{% else %}{{ _("Gomoku") }}{% endif %}{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='game-arena.css') }}">
@@ -83,8 +83,8 @@ function renderTurnHint() {
     return;
   }
   el.style.display = 'block';
-  const name = currentPlayer === 1 ? 'Black' : 'White';
-  el.textContent = isHumanTurn() ? `${name} to move — click the board` : `Waiting for ${name.toLowerCase()}…`;
+  const name = currentPlayer === 1 ? I18n.t("Black") : I18n.t("White");
+  el.textContent = isHumanTurn() ? I18n.t("{0} to move — click the board", name) : I18n.t("Waiting for {0}…", name.toLowerCase());
 }
 
 const config = {
@@ -163,7 +163,7 @@ socket.on('update', (data) => {
   drawBoard();
 
   if (data.winner) {
-    let msg = data.winner === 1 ? 'Black wins!' : (data.winner === 2 ? 'White wins!' : 'Draw!');
+    let msg = data.winner === 1 ? I18n.t("Black wins!") : (data.winner === 2 ? I18n.t("White wins!") : I18n.t("Draw!"));
     showPhaserMask(msg);
     gameOver = true;
   }
@@ -219,9 +219,9 @@ function startReplay(moves, winner) {
   renderTurnHint();
 
 
-  let msg = winner === 1 ? 'Black wins!' : (winner === 2 ? 'White wins!' : 'Draw!');
+  let msg = winner === 1 ? I18n.t("Black wins!") : (winner === 2 ? I18n.t("White wins!") : I18n.t("Draw!"));
   replayController.load(moves.length);
-  replayController.setStatus(msg + ' (' + moves.length + ' moves)');
+  replayController.setStatus(msg + ' (' + moves.length + I18n.t(" moves)"));
   replayController.play();
 }
 

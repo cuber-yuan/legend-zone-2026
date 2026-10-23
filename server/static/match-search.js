@@ -13,7 +13,7 @@
   async function request(url, signal) {
     const response = await platformFetch(url, {cache: 'no-store', signal});
     const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(typeof body.detail === 'string' ? body.detail : 'Invalid filters or the service is unavailable. Please check your filters and retry.');
+    if (!response.ok) throw new Error(typeof body.detail === 'string' ? I18n.t(body.detail) : I18n.t("Invalid filters or the service is unavailable. Please check your filters and retry."));
     return body;
   }
   function controls() {
@@ -24,20 +24,20 @@
   function changed() {
     restoreToken++;
     dirty = true;
-    summary.textContent = 'Filters changed. Apply Filters to update the results.';
+    summary.textContent = I18n.t("Filters changed. Apply Filters to update the results.");
     controls();
   }
   function updateUrl(push = false) {
-    const query = applied.toString(), url = '/matches' + (query ? '?' + query : '');
+    const query = applied.toString(), url = I18n.url('/matches') + (query ? '?' + query : '');
     if (location.pathname + location.search !== url) history[push ? 'pushState' : 'replaceState']({}, '', url);
   }
   function botLabel(bot) {
-    return `${bot.bot_name || bot.id}${bot.game ? ' · ' + bot.game : ''}${bot.owner ? ' · by ' + bot.owner : ''}`;
+    return `${bot.bot_name || bot.id}${bot.game ? ' · ' + I18n.t(bot.game) : ''}${bot.owner ? I18n.t(' · by {0}', bot.owner) : ''}`;
   }
   function chip(container, label, remove) {
     const wrapper = document.createElement('span'), text = document.createElement('span'), button = document.createElement('button');
     wrapper.className = 'matches-chip'; text.textContent = label;
-    button.type = 'button'; button.textContent = '×'; button.setAttribute('aria-label', `Remove ${label}`);
+    button.type = 'button'; button.textContent = '×'; button.setAttribute('aria-label', I18n.t('Remove {0}', label));
     button.addEventListener('click', remove); wrapper.append(text, button); container.append(wrapper);
   }
   function renderSelected() {
@@ -63,7 +63,7 @@
       if (!q) { output.hidden = true; return; }
       timer = setTimeout(async () => {
         active = new AbortController(); const signal = active.signal;
-        message('Searching…');
+        message(I18n.t("Searching…"));
         try {
           const query = new URLSearchParams({q});
           if (endpoint === 'bots' && game.value) query.set('game', game.value);
@@ -77,7 +77,7 @@
               select(option); renderSelected(); changed(); output.hidden = true; input.value = ''; input.focus();
             }); output.append(button);
           }
-          if (!options.length) message('No results found.');
+          if (!options.length) message(I18n.t("No results found."));
         } catch (error) { if (error.name !== 'AbortError') message(error.message); }
       }, 250);
     });
@@ -85,20 +85,20 @@
   }
   const clearBotPicker = picker('filter-bot-search', 'bot-options', 'bots', bot => {
     if (selectedBots.some(item => item.id === bot.id)) return;
-    if (selectedBots.length >= 20) { feedback.textContent = 'Select up to 20 Bots.'; feedback.hidden = false; return; }
+    if (selectedBots.length >= 20) { feedback.textContent = I18n.t("Select up to 20 Bots."); feedback.hidden = false; return; }
     selectedBots.push(bot);
   }, botLabel);
   const clearAuthorPicker = picker('filter-author-search', 'author-options', 'authors', author => { selectedAuthor = author; }, author => author.username);
   form.addEventListener('change', event => {
     if (event.target === game) clearBotPicker();
-    if (event.target.matches('select,input[type="datetime-local"]')) changed();
+    if (event.target.matches("select,input[type=\"datetime-local\"]")) changed();
   });
   form.addEventListener('input', event => { if (event.target.type === 'datetime-local') changed(); });
 
   function localTime(value) {
     if (!value) return '';
     const date = new Date(value);
-    if (!Number.isFinite(date.getTime())) throw new Error('The URL contains an invalid date filter. Clear Filters to reset it.');
+    if (!Number.isFinite(date.getTime())) throw new Error(I18n.t("The URL contains an invalid date filter. Clear Filters to reset it."));
     const pad = number => String(number).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
   }
@@ -109,7 +109,7 @@
     if (!mode) applied.delete('bot_mode');
     dirty = false; data = null;
     selectedBots = applied.getAll('bot').map(id => ({id}));
-    selectedAuthor = applied.has('author') ? {id: applied.get('author'), username: 'User #' + applied.get('author')} : null;
+    selectedAuthor = applied.has('author') ? {id: applied.get('author'), username: I18n.t('User #{0}', applied.get('author'))} : null;
     form.reset(); feedback.hidden = true;
     try {
       const requestedGame = applied.get('game') || '';
@@ -130,7 +130,7 @@
       renderSelected(); await load();
     } catch (error) {
       if (token !== restoreToken) return;
-      dirty = true; loading = false; feedback.textContent = error.message; feedback.hidden = false; controls();
+      dirty = true; loading = false; feedback.textContent = I18n.t(error.message); feedback.hidden = false; controls();
     }
   }
   async function load() {
@@ -143,11 +143,11 @@
       data = result;
       if (result.page === 1) applied.delete('page'); else applied.set('page', result.page);
       updateUrl();
-      MatchTable.render(field('search-matches-tbody'), result.matches, 'No matches found for these filters.', {showStatus: true});
-      summary.textContent = dirty ? 'Filters changed. Apply Filters to update the results.' : `${result.total} matching match${result.total === 1 ? '' : 'es'} · newest first${result.page === 1 ? ' · refreshes every 5 seconds' : ''}`;
-      field('match-page').textContent = `Page ${result.page} of ${result.pages}`;
+      MatchTable.render(field('search-matches-tbody'), result.matches, I18n.t("No matches found for these filters."), {showStatus: true});
+      summary.textContent = dirty ? I18n.t("Filters changed. Apply Filters to update the results.") : I18n.t("{0} matching match{1} · newest first{2}", result.total, result.total === 1 ? '' : 'es', result.page === 1 ? I18n.t(' · refreshes every 5 seconds') : '');
+      field('match-page').textContent = I18n.t("Page {0} of {1}", result.page, result.pages);
     } catch (error) {
-      if (error.name !== 'AbortError') { feedback.textContent = error.message; feedback.hidden = false; }
+      if (error.name !== 'AbortError') { feedback.textContent = I18n.t(error.message); feedback.hidden = false; }
     } finally {
       if (controller === current) { loading = false; controls(); field('match-results').setAttribute('aria-busy', 'false'); }
     }
@@ -167,7 +167,7 @@
       if (input.value) params.set(name, new Date(input.value).toISOString());
     }
     if (from.value && through.value && new Date(from.value) > new Date(through.value)) {
-      feedback.textContent = 'The start time must not be after the end time.'; feedback.hidden = false; return;
+      feedback.textContent = I18n.t("The start time must not be after the end time."); feedback.hidden = false; return;
     }
     applied = params; dirty = false; updateUrl(true); load();
   });

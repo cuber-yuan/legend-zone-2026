@@ -17,6 +17,7 @@ from .api_matches import router as matches_router
 from .api_match_search import router as match_search_router
 from .chat import Chat
 from .config import ROOT, Settings
+from .i18n import LocaleMiddleware
 from .database import Database
 from .runner import Matches
 from .tables import Tables
@@ -122,6 +123,7 @@ def create_app(settings=None):
     app.state.attempts = Attempts()
     app.state.tables = Tables()
     app.add_middleware(BodyLimit, limit=settings.max_upload)
+    app.add_middleware(LocaleMiddleware, secure_cookie=settings.secure_cookie)
 
     @app.middleware("http")
     async def security(request, call_next):

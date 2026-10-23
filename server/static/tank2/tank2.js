@@ -226,7 +226,7 @@ class TankScene extends Phaser.Scene {
         this.tankLayer = this.add.group();
         this.markLayer = this.add.group();
         this.drawGround();
-        this.waitingText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'Waiting for match…', {
+        this.waitingText = this.add.text(this.scale.width / 2, this.scale.height / 2, I18n.t("Waiting for match…"), {
             fontFamily: 'system-ui, sans-serif', fontSize: '15px', color: '#c4d6ce', backgroundColor: '#233b34', padding: { x: 16, y: 10 }
         }).setOrigin(0.5);
     }

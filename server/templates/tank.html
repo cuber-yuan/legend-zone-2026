@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{% if match_id %}Watch Match{% else %}Tank Battle{% endif %}{% endblock %}
+{% block title %}{% if match_id %}{{ _("Watch Match") }}{% else %}{{ _("Tank Battle") }}{% endif %}{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='game-arena.css') }}">
@@ -19,9 +19,9 @@
 
 <div class="tank-page">
   <div class="max-w-screen-xl mx-auto">
-    <section class="tank-arena" aria-label="Tank Battle game board">
+    <section class="tank-arena" aria-label="{{ _("Tank Battle game board") }}">
       <div class="tank-heading game-heading">
-        <h1>Tank Battle</h1>
+        <h1>{{ _("Tank Battle") }}</h1>
         {% if not match_id %}{% include 'components/game_matches_link.html' %}{% endif %}
       </div>
       {% set player_sides = [{'label': 'Blue', 'marker': 'blue'}, {'label': 'Red', 'marker': 'red'}] %}
@@ -31,26 +31,26 @@
           <div class="tank-board-wrap">
             <div id="phaser-container"></div>
             <!-- Orders cluster: keys sit on the cells around the hovered tank -->
-            <div id="tankPad" class="tank-pad" role="group" aria-label="Tank orders">
-              <span class="tp-cell tp-cell--up"><button type="button" class="tp-key" data-act="0" style="--i:1" aria-label="Move up" title="Move up">&#9650;</button></span>
-              <span class="tp-cell tp-cell--right"><button type="button" class="tp-key" data-act="1" style="--i:2" aria-label="Move right" title="Move right">&#9654;</button></span>
-              <span class="tp-cell tp-cell--down"><button type="button" class="tp-key" data-act="2" style="--i:3" aria-label="Move down" title="Move down">&#9660;</button></span>
-              <span class="tp-cell tp-cell--left"><button type="button" class="tp-key" data-act="3" style="--i:4" aria-label="Move left" title="Move left">&#9664;</button></span>
+            <div id="tankPad" class="tank-pad" role="group" aria-label="{{ _("Tank orders") }}">
+              <span class="tp-cell tp-cell--up"><button type="button" class="tp-key" data-act="0" style="--i:1" aria-label="{{ _("Move up") }}" title="{{ _("Move up") }}">&#9650;</button></span>
+              <span class="tp-cell tp-cell--right"><button type="button" class="tp-key" data-act="1" style="--i:2" aria-label="{{ _("Move right") }}" title="{{ _("Move right") }}">&#9654;</button></span>
+              <span class="tp-cell tp-cell--down"><button type="button" class="tp-key" data-act="2" style="--i:3" aria-label="{{ _("Move down") }}" title="{{ _("Move down") }}">&#9660;</button></span>
+              <span class="tp-cell tp-cell--left"><button type="button" class="tp-key" data-act="3" style="--i:4" aria-label="{{ _("Move left") }}" title="{{ _("Move left") }}">&#9664;</button></span>
               <span class="tp-cell tp-cell--core">
-                <button type="button" class="tp-core" id="tpArm" aria-label="Toggle fire mode" title="Toggle fire mode"><span class="tp-muzzle"></span></button>
+                <button type="button" class="tp-core" id="tpArm" aria-label="{{ _("Toggle fire mode") }}" title="{{ _("Toggle fire mode") }}"><span class="tp-muzzle"></span></button>
               </span>
               <div class="tp-caption">
-                <span id="tpTag">Tank 1</span>
+                <span id="tpTag">{{ _("Tank 1") }}</span>
                 <span class="tp-coord" id="tpCoord"></span>
-                <span class="tp-mode" id="tpMode">move</span>
-                <button type="button" class="tp-hold" id="tpHold" title="Hold position">hold</button>
+                <span class="tp-mode" id="tpMode">{{ _("move") }}</span>
+                <button type="button" class="tp-hold" id="tpHold" title="{{ _("Hold position") }}">{{ _("hold") }}</button>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div class="game-footer">
-        <div id="spectatorBadge" class="spectator-badge">Spectating</div>
+        <div id="spectatorBadge" class="spectator-badge">{{ _("Spectating") }}</div>
         <div id="orderBar" class="order-bar">
           <span class="ob-seat" id="obSeat"></span>
           <span class="ob-count" id="obCount"></span>
@@ -92,7 +92,7 @@ let phaserGame;
 let maskRect = null;
 let maskText = null;
 
-function showPhaserMask(msg = "Waiting for new game...") {
+function showPhaserMask(msg = I18n.t("Waiting for new game...")) {
   const scene = phaserGame.scene.getScene('TankScene');
   if (!scene) return;
   hidePhaserMask();
@@ -126,7 +126,7 @@ let fireArmed = false;
 let padCloseTimer = null;
 let lastPointer = { x: -1, y: -1 };
 
-const SEAT_LABEL = { '1': 'Top player · blue', '2': 'Bottom player · red' };
+const SEAT_LABEL = { '1': I18n.t("Top player · blue"), '2': I18n.t("Bottom player · red") };
 const DIR_NAME = { 0: 'up', 1: 'right', 2: 'down', 3: 'left' };
 const seatSide = (seat) => (seat === '1' ? 0 : 1);
 const seatOfSide = (side) => (side === 0 ? '1' : '2');
@@ -282,18 +282,18 @@ function renderPad() {
   padKeys().forEach((b) => {
     const base = parseInt(b.getAttribute('data-act'), 10);
     b.disabled = !sc.actionLegal(side, activeTank, fireArmed ? base + 4 : base);
-    b.title = `${fireArmed ? 'Fire' : 'Move'} ${DIR_NAME[base]}`;
+    b.title = `${I18n.t(fireArmed ? 'Fire' : 'Move')} ${I18n.t(DIR_NAME[base])}`;
   });
 
   const mode = document.getElementById('tpMode');
-  if (mode) mode.textContent = fireArmed ? 'fire' : 'move';
+  if (mode) mode.textContent = I18n.t(fireArmed ? 'fire' : 'move');
   const tag = document.getElementById('tpTag');
-  if (tag) tag.textContent = `Tank ${activeTank + 1}`;
+  if (tag) tag.textContent = I18n.t('Tank {0}', activeTank + 1);
   const coord = document.getElementById('tpCoord');
   const spot = sc.localTanks[side * 2 + activeTank];
   if (coord && spot) coord.textContent = `${spot.x},${spot.y}`;
   const arm = document.getElementById('tpArm');
-  if (arm) arm.setAttribute('aria-label', fireArmed ? 'Switch back to move mode' : 'Switch to fire mode');
+  if (arm) arm.setAttribute('aria-label', fireArmed ? I18n.t("Switch back to move mode") : I18n.t("Switch to fire mode"));
   const hold = document.getElementById('tpHold');
   if (hold) hold.disabled = !sc.actionLegal(side, activeTank, -1);
   positionPad(pad, sc);
@@ -348,8 +348,8 @@ function renderOrderBar() {
   const sc = tankScene();
   if (!commandSeat) {
     bar.className = 'order-bar show locked';
-    if (seatEl) seatEl.textContent = 'Orders locked in';
-    if (countEl) countEl.textContent = 'waiting';
+    if (seatEl) seatEl.textContent = I18n.t("Orders locked in");
+    if (countEl) countEl.textContent = I18n.t('waiting');
     return;
   }
   const side = seatSide(commandSeat);
@@ -358,8 +358,8 @@ function renderOrderBar() {
     return commands[commandSeat][t] !== null;
   }).length;
   bar.className = 'order-bar show';
-  if (seatEl) seatEl.textContent = humanSeats().length > 1 ? SEAT_LABEL[commandSeat] : 'Hover a tank to order it';
-  if (countEl) countEl.textContent = `orders ${done}/2`;
+  if (seatEl) seatEl.textContent = humanSeats().length > 1 ? SEAT_LABEL[commandSeat] : I18n.t("Hover a tank to order it");
+  if (countEl) countEl.textContent = I18n.t("orders {0}/2", done);
 }
 
 // Amber / red brackets drawn on the board mark the tanks whose order is locked,
@@ -393,7 +393,7 @@ socket.on('game_started', (data) => {
     if (scene && typeof scene.updateFromState === 'function') {
         scene.updateFromState(data.state);
     } else {
-        console.error("TankScene or its updateFromState method is not available!");
+        console.error(I18n.t("TankScene or its updateFromState method is not available!"));
     }
     const badge = document.getElementById('spectatorBadge');
     if (badge) badge.style.display = 'none';
@@ -406,7 +406,7 @@ socket.on('update', (data) => {
         if (data.match_id && data.match_id !== MATCH_ID) return;
     } else {
         if (!currentGameId || data.game_id !== currentGameId) {
-            console.log(`Ignoring update for irrelevant game: ${data.game_id}`);
+            console.log(I18n.t("Ignoring update for irrelevant game: {0}", data.game_id));
             return;
         }
     }
@@ -429,11 +429,11 @@ socket.on('finish', (data) => {
     renderCommandPanel();
     let winner = data.winner;
     if (winner == 0) {
-        showPhaserMask('Blue wins!');
+        showPhaserMask(I18n.t("Blue wins!"));
     } else if (winner == 1) {
-        showPhaserMask('Red wins!');
+        showPhaserMask(I18n.t("Red wins!"));
     } else {
-        showPhaserMask('Draw!');
+        showPhaserMask(I18n.t("Draw!"));
     }
 });
 
@@ -503,9 +503,9 @@ function startReplay(displays, winner) {
     renderCommandPanel();
 
 
-    let msg = winner == 0 ? 'Blue wins!' : (winner == 1 ? 'Red wins!' : 'Draw!');
+    let msg = winner == 0 ? I18n.t("Blue wins!") : (winner == 1 ? I18n.t("Red wins!") : I18n.t("Draw!"));
     replayController.load(Math.max(0, displays.length - 1));
-    replayController.setStatus(msg + ' (' + Math.max(0, displays.length - 1) + ' turns)');
+    replayController.setStatus(msg + ' (' + Math.max(0, displays.length - 1) + I18n.t(" turns)"));
     replayController.play();
 }
 

@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %}Chat Room{% endblock %}
+{% block title %}{{ _("Chat Room") }}{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='chat.css') }}">
 <div class="chat-page">
     <section class="chat-card">
         <div class="chat-note">
-            <p id="chat-history-note">Chat history is visible for up to {{ history_hours }} {{ 'hour' if history_hours == 1 else 'hours' }} and disappears automatically.</p>
+            <p id="chat-history-note">{{ _("Chat history is visible for up to") }} {{ history_hours }} {{ _('hour' if history_hours == 1 else 'hours') }} {{ _("and disappears automatically.") }}</p>
         </div>
         <div class="chat-history-wrap">
         <div id="chat-history" class="chat-history">
@@ -21,22 +21,22 @@
             </div>
             {% endfor %}
         </div>
-        <button id="chat-new-messages" class="chat-new-messages" type="button" hidden>New messages ↓</button>
+        <button id="chat-new-messages" class="chat-new-messages" type="button" hidden>{{ _("New messages ↓") }}</button>
         </div>
 
         {% if current_user.is_authenticated %}
         <div class="chat-composer">
             <form id="chat-form" method="post" action="{{ url_for('main.chat') }}" onsubmit="return sendMessage(event);">
-                <textarea name="message" id="message" rows="3" placeholder="Type your message..." aria-label="Message" required></textarea>
+                <textarea name="message" id="message" rows="3" placeholder="{{ _("Type your message...") }}" aria-label="{{ _("Message") }}" required></textarea>
                 <div class="chat-composer-actions">
-                    <button type="submit" class="chat-send">Send</button>
+                    <button type="submit" class="chat-send">{{ _("Send") }}</button>
                 </div>
                 <p id="chat-send-error" class="text-sm text-red-600 mt-2" role="alert" hidden></p>
             </form>
         </div>
         {% else %}
         <div class="chat-login-notice">
-            <p>You must be logged in to send messages.</p>
+            <p>{{ _("You must be logged in to send messages.") }}</p>
         </div>
         {% endif %}
     </section>
@@ -119,7 +119,7 @@ function fetchMessages() {
     const sequence = ++requestSequence;
     return platformFetch('{{ url_for("main.chat_messages") }}')
         .then(async response => {
-            if (!response.ok) throw new Error('Unable to load chat history.');
+            if (!response.ok) throw new Error(I18n.t('Unable to load chat history.'));
             return {data: await response.json(), hours: Number(response.headers.get('X-Chat-History-Hours'))};
         })
         .then(({data, hours}) => {
@@ -127,7 +127,7 @@ function fetchMessages() {
             if (sequence < appliedSequence) return;
             appliedSequence = sequence;
             if (Number.isInteger(hours) && hours > 0) {
-                document.getElementById('chat-history-note').textContent = `Chat history is visible for up to ${hours} ${hours === 1 ? 'hour' : 'hours'} and disappears automatically.`;
+                document.getElementById('chat-history-note').textContent = I18n.t('Chat history is visible for up to {0} {1} and disappears automatically.', hours, hours === 1 ? 'hour' : 'hours');
             }
             updateMessages(data);
         })
@@ -165,12 +165,12 @@ function sendMessage(event) {
             form.reset();
             fetchMessages(); // Refresh chat after sending
         } else {
-            errorMessage.textContent = data.error || 'Unable to send your message. Please try again.';
+            errorMessage.textContent = I18n.t(data.error || 'Unable to send your message. Please try again.');
             errorMessage.hidden = false;
         }
     })
     .catch(() => {
-        errorMessage.textContent = 'Unable to send your message. Please try again.';
+        errorMessage.textContent = I18n.t('Unable to send your message. Please try again.');
         errorMessage.hidden = false;
     });
     return false;

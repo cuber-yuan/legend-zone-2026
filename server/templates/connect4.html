@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{% if match_id %}Watch Match{% else %}Connect Four{% endif %}{% endblock %}
+{% block title %}{% if match_id %}{{ _("Watch Match") }}{% else %}{{ _("Connect Four") }}{% endif %}{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='game-arena.css') }}">
@@ -15,20 +15,20 @@
 <div class="c4-page">
   <section class="c4-arena" aria-labelledby="c4-title">
     <header class="c4-heading game-heading">
-      <h1 id="c4-title" class="c4-title">Connect Four</h1>
+      <h1 id="c4-title" class="c4-title">{{ _("Connect Four") }}</h1>
       {% if not match_id %}{% include 'components/game_matches_link.html' %}{% endif %}
     </header>
     {% set player_sides = [{'label': 'Blue', 'marker': 'blue'}, {'label': 'Red', 'marker': 'red'}] %}
     {% include 'components/match_players.html' %}
     <div class="c4-stage">
-      <div id="phaser-container" role="img" aria-label="Connect Four board: seven columns and six rows"></div>
-      <div class="c4-columns" role="group" aria-label="Choose a column">
-        {% for column in range(7) %}<button type="button" data-column="{{ column }}" aria-label="Drop in column {{ column + 1 }}" disabled>{{ column + 1 }}</button>{% endfor %}
+      <div id="phaser-container" role="img" aria-label="{{ _("Connect Four board: seven columns and six rows") }}"></div>
+      <div class="c4-columns" role="group" aria-label="{{ _("Choose a column") }}">
+        {% for column in range(7) %}<button type="button" data-column="{{ column }}" aria-label="{{ _('Drop in column {0}', column + 1) }}" disabled>{{ column + 1 }}</button>{% endfor %}
       </div>
     </div>
     <footer class="c4-footer game-footer">
       <div id="gameResult" class="c4-result" role="status"><strong id="resultTitle"></strong><span id="resultDetail"></span></div>
-      <div id="spectatorBadge" class="spectator-badge">Spectating</div>
+      <div id="spectatorBadge" class="spectator-badge">{{ _("Spectating") }}</div>
       <p id="turnHint" class="turn-hint" role="status" aria-live="polite"></p>
     </footer>
   </section>

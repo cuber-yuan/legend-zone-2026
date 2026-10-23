@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Home{% endblock %}
+{% block title %}{{ _("Home") }}{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='match-table.css') }}">
@@ -107,7 +107,7 @@
 
     socket.on('latest_matches', (data) => {
         MatchTable.render(document.getElementById('latest-matches-tbody'), data.matches || [],
-            'No matches yet — create one to fill the arena.');
+            I18n.t("No matches yet — create one to fill the arena."));
     });
 
 </script>
@@ -115,14 +115,14 @@
 <div class="max-w-screen-lg mx-auto mt-8 space-y-12">
     <!-- Hero Section -->
     <section class="bg-gradient-to-r from-blue-600 to-blue-400 text-white p-8 rounded-lg shadow-lg">
-        <h1 class="text-4xl font-bold mb-4">Welcome to Legend Zone</h1>
-        <p class="text-lg">Your hub for AI, coding, and technology. Explore games, learn algorithms, and more!</p>
+        <h1 class="text-4xl font-bold mb-4">{{ _("Welcome to Legend Zone") }}</h1>
+        <p class="text-lg">{{ _("Your hub for AI, coding, and technology. Explore games, learn algorithms, and more!") }}</p>
     </section>
 
     <!-- Game Tables Section -->
     <section class="bg-white p-6 rounded-lg shadow-md">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-            <h2 class="text-2xl font-semibold">Game Tables</h2>
+            <h2 class="text-2xl font-semibold">{{ _("Game Tables") }}</h2>
             <div class="flex items-center space-x-3">
                 <!-- <div class="flex border border-gray-300 rounded overflow-hidden">
                     <button class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 transition-colors" title="List view">
@@ -138,28 +138,28 @@
                 </div> -->
                 <button id="btn-create-table" type="button" class="dlg-btn dlg-btn-primary">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    <span>Create</span>
+                    <span>{{ _("Create") }}</span>
                 </button>
             </div>
         </div>
         <div class="border-t border-gray-200 pt-4">
             <div id="game-tables" class="gt-grid"></div>
-            <p id="game-tables-empty" class="gt-empty">No tables are being set up right now.</p>
+            <p id="game-tables-empty" class="gt-empty">{{ _("No tables are being set up right now.") }}</p>
         </div>
     </section>
 
     <!-- Placeholder Section 1 -->
     <section class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-2xl font-semibold mb-4" style="margin-bottom:1em;">Legend's quotes</h2>
-        <p class="text-gray-700" style="margin-bottom:1em;"><i>"The Snake game is as simple as a Hello World program."</i></p>
-        <p class="text-gray-700" style="margin-bottom:1em;"><i>"User interface doesn't matter much."</i></p>
+        <h2 class="text-2xl font-semibold mb-4" style="margin-bottom:1em;">{{ _("Legend's quotes") }}</h2>
+        <p class="text-gray-700" style="margin-bottom:1em;"><i>{{ _("\"The Snake game is as simple as a Hello World program.\"") }}</i></p>
+        <p class="text-gray-700" style="margin-bottom:1em;"><i>{{ _("\"User interface doesn't matter much.\"") }}</i></p>
     </section>
 
     <!-- Latest Matches -->
     <section class="bg-white rounded-lg overflow-hidden shadow-md">
         <div class="lm-head px-4 py-4 sm:px-6 sm:py-5">
-            <h2 class="text-xl sm:text-2xl font-semibold">Latest Matches</h2>
-            <a class="lm-more" href="{{ url_for('main.matches') }}">More Matches</a>
+            <h2 class="text-xl sm:text-2xl font-semibold">{{ _("Latest Matches") }}</h2>
+            <a class="lm-more" href="{{ url_for('main.matches') }}">{{ _("More Matches") }}</a>
             <!-- <span class="lm-count" id="latest-count"></span> -->
         </div>
         {% with match_table_id='latest-matches-tbody' %}
@@ -178,11 +178,11 @@
 
     function gameTableSeat(seat) {
         const type = seat && seat.name ? (seat.type === 'human' ? 'human' : 'bot') : 'empty';
-        const role = type === 'human' ? 'Player' : (type === 'bot' ? 'Bot' : 'Waiting');
-        const name = type === 'empty' ? 'Open seat' : seat.name;
+        const role = type === 'human' ? I18n.t("Player") : (type === 'bot' ? I18n.t("Bot") : I18n.t("Waiting"));
+        const name = type === 'empty' ? I18n.t("Open seat") : seat.name;
         return `<div class="gt-seat" data-type="${type}">
                     <span class="gt-role">${role}</span>
-                    <span class="gt-avatar">${glyphSvg(type, ' width="15" height="15"')}</span>
+                    <span class="gt-avatar">${glyphSvg(type, " width=\"15\" height=\"15\"")}</span>
                     <span class="gt-name">${escapeHtml(name)}</span>
                 </div>`;
     }
@@ -194,7 +194,7 @@
         gameTables.innerHTML = list.map((t, i) => {
             const seats = Array.isArray(t.seats) ? t.seats : [];
             return `<div class="gt-card" style="--i:${i}">
-                        <span class="gt-badge">${escapeHtml(t.game || 'Game')}</span>
+                        <span class="gt-badge">${escapeHtml(t.game || I18n.t("Game"))}</span>
                         <span class="gt-host">by <b>${escapeHtml(t.host || '?')}</b></span>
                         <div class="gt-top">${gameTableSeat(seats[0])}<span class="gt-net"></span>${gameTableSeat(seats[1])}</div>
                     </div>`;

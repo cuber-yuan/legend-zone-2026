@@ -126,10 +126,10 @@ window.PlatformClient = class PlatformClient {
       if (!response.ok) {
         const data = await response.json();
         if (response.status !== 400)
-          alert(data.detail || "Unable to submit the move.");
+          alert(I18n.t(data.detail || "Unable to submit the move."));
       }
     } catch (error) {
-      console.warn("Move submission failed", error);
+      console.warn(I18n.t("Move submission failed"), error);
     } finally {
       this.submitting = false;
     }
@@ -152,7 +152,7 @@ window.PlatformClient = class PlatformClient {
         `/api/matches/${encodeURIComponent(this.id)}`,
         { cache: "no-store" },
       );
-      if (!response.ok) throw new Error("Unable to load match.");
+      if (!response.ok) throw new Error(I18n.t("Unable to load match."));
       const match = await response.json();
       this.snapshot = match;
       const board = ["gomoku", "tictactoe", "connect4"].includes(match.slug);
@@ -191,7 +191,7 @@ window.PlatformClient = class PlatformClient {
         this.dispatch("finish", {
           ...base,
           winner: board ? 0 : -1,
-          error_msg: "Match interrupted.",
+          error_msg: I18n.t("Match interrupted."),
         });
         this.closed = true;
         return;
@@ -244,7 +244,7 @@ window.PlatformClient = class PlatformClient {
       }
       await this.submit();
     } catch (error) {
-      console.warn("Match refresh failed", error);
+      console.warn(I18n.t("Match refresh failed"), error);
     }
     if (!this.closed) this.timer = setTimeout(() => this.poll(), 500);
   }
@@ -280,7 +280,7 @@ window.PlatformClient = class PlatformClient {
         })),
       });
     } catch (error) {
-      console.warn("Homepage refresh failed", error);
+      console.warn(I18n.t("Homepage refresh failed"), error);
     }
     if (!this.closed) this.timer = setTimeout(() => this.home(), 3000);
   }
@@ -306,10 +306,10 @@ window.PlatformClient = class PlatformClient {
 
 document.addEventListener("DOMContentLoaded", () => {
   document
-    .querySelector('a[href="#logout"]')
+    .querySelector("a[href=\"#logout\"]")
     ?.addEventListener("click", async (event) => {
       event.preventDefault();
       await platformFetch("/api/logout", { method: "POST" });
-      location.href = "/";
+      location.href = I18n.url("/");
     });
 });

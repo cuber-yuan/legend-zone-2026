@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% set guide_game = "Mini Snake" if request.path == "/msnake" or (match is defined and match and match.game == "Mini Snake") else "Snake" %}
 
-{% block title %}{% if match_id %}Watch Match{% else %}{{ guide_game }}{% endif %}{% endblock %}
+{% block title %}{% if match_id %}{{ _("Watch Match") }}{% else %}{{ _(guide_game) }}{% endif %}{% endblock %}
 
 {% block floating_corner %}
-<div id="floating-corner" class="snake-direction-pad fixed bottom-6 right-6 z-50 lg:hidden hidden" aria-label="Movement controls">
+<div id="floating-corner" class="snake-direction-pad fixed bottom-6 right-6 z-50 lg:hidden hidden" aria-label="{{ _("Movement controls") }}">
   {% for direction, rotation in [('up', -90), ('left', 180), ('down', 90), ('right', 0)] %}
   <button id="arrow-{{ direction }}" type="button" aria-label="Move {{ direction }}" style="grid-area:{{ direction }};">
     <svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate({{ rotation }}deg);"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
@@ -33,7 +33,7 @@
   <div class="max-w-screen-xl mx-auto">
     <section class="snake-arena" aria-label="{{ guide_game }} game board">
       <div class="snake-heading game-heading">
-        <h1>{{ guide_game }}</h1>
+        <h1>{{ _(guide_game) }}</h1>
         {% if not match_id %}{% include 'components/game_matches_link.html' %}{% endif %}
       </div>
       {% set player_sides = [{'label': 'Blue', 'marker': 'blue'}, {'label': 'Red', 'marker': 'red'}] %}
@@ -44,7 +44,7 @@
         </div>
       </div>
       <div class="snake-footer game-footer">
-        <div id="spectatorBadge" class="spectator-badge">Spectating</div>
+        <div id="spectatorBadge" class="spectator-badge">{{ _("Spectating") }}</div>
         <div id="turnHint" class="turn-hint"></div>
       </div>
     </section>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{% if match_id %}Watch Match{% else %}Tic Tac Toe{% endif %}{% endblock %}
+{% block title %}{% if match_id %}{{ _("Watch Match") }}{% else %}{{ _("Tic Tac Toe") }}{% endif %}{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='game-arena.css') }}">
@@ -84,7 +84,7 @@ function renderTurnHint() {
   }
   el.style.display = 'block';
   const name = currentPlayer === 1 ? 'X' : 'O';
-  el.textContent = isHumanTurn() ? `${name} to move — click the board` : `Waiting for ${name.toLowerCase()}…`;
+  el.textContent = isHumanTurn() ? I18n.t("{0} to move — click the board", name) : I18n.t("Waiting for {0}…", name.toLowerCase());
 }
 
 const config = {
@@ -159,7 +159,7 @@ socket.on('update', (data) => {
   lastMove = data.ai_move || null;
   drawBoard();
   if (data.winner) {
-    let msg = data.winner === 1 ? 'X wins!' : (data.winner === 2 ? 'O wins!' : 'Draw!');
+    let msg = data.winner === 1 ? I18n.t("X wins!") : (data.winner === 2 ? I18n.t("O wins!") : I18n.t("Draw!"));
     showPhaserMask(msg);
     gameOver = true;
   }
@@ -211,9 +211,9 @@ function startReplay(moves, winner) {
   isReplayMode = true;
   replayMoves = moves;
   renderTurnHint();
-  let msg = winner === 1 ? 'X wins!' : (winner === 2 ? 'O wins!' : 'Draw!');
+  let msg = winner === 1 ? I18n.t("X wins!") : (winner === 2 ? I18n.t("O wins!") : I18n.t("Draw!"));
   replayController.load(moves.length);
-  replayController.setStatus(msg + ' (' + moves.length + ' moves)');
+  replayController.setStatus(msg + ' (' + moves.length + I18n.t(" moves)"));
   replayController.play();
 }
 

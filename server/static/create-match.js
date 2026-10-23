@@ -15,7 +15,7 @@ window.initMatchSetup = function (options) {
     let selectedGame = null, setupRequest = 0;
     const isAuthenticated = options.isAuthenticated;
     const CURRENT_USERNAME = options.username;
-    const HUMAN_LABEL = CURRENT_USERNAME || 'Player';
+    const HUMAN_LABEL = CURRENT_USERNAME || I18n.t("Player");
 
     // openGameTable() runs before the seats are (re)rendered, so the lineup rides
     // along with table_open instead of a fresh table briefly showing two empty seats.
@@ -45,7 +45,7 @@ window.initMatchSetup = function (options) {
         if (!games.length) {
             const p = document.createElement('p');
             p.className = 'game-empty';
-            p.textContent = emptyText || 'No games available.';
+            p.textContent = emptyText || I18n.t("No games available.");
             gameGrid.appendChild(p);
             return;
         }
@@ -59,7 +59,7 @@ window.initMatchSetup = function (options) {
             card.setAttribute('aria-pressed', 'false');
             const name = document.createElement('span');
             name.className = 'game-name';
-            name.textContent = g.name;
+            name.textContent = I18n.t(g.name);
             const ord = document.createElement('span');
             ord.className = 'game-idx';
             ord.textContent = String(idx + 1).padStart(2, '0');
@@ -79,9 +79,9 @@ window.initMatchSetup = function (options) {
     btnCreate.addEventListener('click', async () => {
         btnCreate.classList.add('no-shine');
         if (!isAuthenticated) {
-            alert('Please log in to create a match.');
+            alert(I18n.t("Please log in to create a match."));
             socket.disconnect();
-            window.location.href = '/login';
+            window.location.href = I18n.url('/login');
             return;
         }
         closeGameTable();
@@ -92,7 +92,7 @@ window.initMatchSetup = function (options) {
             const resp = await platformFetch('/api/games');
             renderGameCards(await resp.json());
         } catch (e) {
-            renderGameCards([], 'Could not load the game list.');
+            renderGameCards([], I18n.t("Could not load the game list."));
         }
     });
 
@@ -112,21 +112,21 @@ window.initMatchSetup = function (options) {
         return `
             <div class="seat-card" data-type="bot" style="--i:${i - 1}">
                 <div class="seat-head">
-                    <span class="seat-label">Seat ${i}</span>
-                    <span class="seg" role="radiogroup" aria-label="Seat ${i} type">
-                        <button type="button" class="seg-btn seg-bot" role="radio" aria-checked="true">Bot</button>
-                        <button type="button" class="seg-btn seg-human" role="radio" aria-checked="false">Human</button>
+                    <span class="seat-label">${I18n.t("Seat {0}", i)}</span>
+                    <span class="seg" role="radiogroup" aria-label="${I18n.t("Seat {0} type", i)}">
+                        <button type="button" class="seg-btn seg-bot" role="radio" aria-checked="true">${I18n.t("Bot")}</button>
+                        <button type="button" class="seg-btn seg-human" role="radio" aria-checked="false">${I18n.t("Human")}</button>
                     </span>
                 </div>
                 <div class="seat-bot-row">
-                    <select class="seat-select player-bot" aria-label="Bot for seat ${i}">${botOptions}</select>
+                    <select class="seat-select player-bot" aria-label="${I18n.t("Bot for seat {0}", i)}">${botOptions}</select>
                     <details class="seat-version">
-                        <summary aria-label="Change bot version for seat ${i}"><span data-version-label>Latest</span></summary>
-                        <div class="version-options" role="group" aria-label="Bot version for seat ${i}"></div>
+                        <summary aria-label="${I18n.t("Change bot version for seat {0}", i)}"><span data-version-label>${I18n.t("Latest")}</span></summary>
+                        <div class="version-options" role="group" aria-label="${I18n.t("Bot version for seat {0}", i)}"></div>
                     </details>
                     <input type="hidden" class="player-version">
                 </div>
-                <input type="text" readonly tabindex="-1" aria-disabled="true" class="seat-name player-name seat-hidden" placeholder="Player ${i}">
+                <input type="text" readonly tabindex="-1" aria-disabled="true" class="seat-name player-name seat-hidden" placeholder="${I18n.t("Player {0}", i)}">
             </div>
         `;
     }
@@ -178,8 +178,8 @@ window.initMatchSetup = function (options) {
         const lineup = currentLineup();
         const stuck = lineup.some((s) => s.type === 'bot' && (!s.botId || !s.version));
         btnStartGame.disabled = stuck;
-        lineupNote.textContent = stuck ? 'A bot seat still has no bot to pick.' :
-            lineup.some(s => s.type === 'bot' && s.oldVersion) ? 'Older bot versions do not affect ratings for either player.' : '';
+        lineupNote.textContent = stuck ? I18n.t("A bot seat still has no bot to pick.") :
+            lineup.some(s => s.type === 'bot' && s.oldVersion) ? I18n.t("Older bot versions do not affect ratings for either player.") : '';
         syncGameTable();
     }
 
@@ -207,11 +207,11 @@ window.initMatchSetup = function (options) {
                     option.type = 'button';
                     option.className = 'version-option';
                     option.dataset.version = v;
-                    option.textContent = `v${v}${index === 0 ? ' (latest)' : ''}`;
+                    option.textContent = `v${v}${index === 0 ? I18n.t(" (latest)") : ''}`;
                     option.setAttribute('aria-pressed', String(index === 0));
                     option.addEventListener('click', () => {
                         select.value = v;
-                        slot.querySelector('[data-version-label]').textContent = index === 0 ? 'Latest' : `v${v}`;
+                        slot.querySelector("[data-version-label]").textContent = index === 0 ? I18n.t("Latest") : `v${v}`;
                         slot.querySelectorAll('.version-option').forEach(button => button.setAttribute('aria-pressed', String(button === option)));
                         slot.querySelector('.seat-version').open = false;
                         slot.querySelector('.seat-version summary').focus();
@@ -219,7 +219,7 @@ window.initMatchSetup = function (options) {
                     });
                     return option;
                 }));
-                slot.querySelector('[data-version-label]').textContent = 'Latest';
+                slot.querySelector("[data-version-label]").textContent = I18n.t("Latest");
                 slot.querySelector('.seat-version').open = false;
                 syncPlayerSlot(slot);
             };
@@ -231,7 +231,7 @@ window.initMatchSetup = function (options) {
 
     function showPlayerSetup() {
         const request = ++setupRequest, game = selectedGame;
-        playerGameName.textContent = selectedGame.name;
+        playerGameName.textContent = I18n.t(selectedGame.name);
         openGameTable();
 
         // Re-opening the same game after abandoning a table reuses its lineup.
@@ -253,13 +253,13 @@ window.initMatchSetup = function (options) {
                 if (request !== setupRequest) return;
                 const botOptions = bots.length
                     ? bots.map(b => `<option value="${escapeHtml(String(b.id))}" data-versions="${(b.versions || []).filter(Number.isInteger).join(',')}">${escapeHtml(b.bot_name)}</option>`).join('')
-                    : '<option value="">No bots available</option>';
+                    : `<option value="">${I18n.t("No bots available")}</option>`;
                 renderPlayerSlots(botOptions, game.slug);
             })
             .catch(err => {
                 if (request !== setupRequest) return;
-                console.error('Failed to load bots:', err);
-                renderPlayerSlots('<option value="">No bots available</option>', game.slug);
+                console.error(I18n.t("Failed to load bots:"), err);
+                renderPlayerSlots(`<option value="">${I18n.t("No bots available")}</option>`, game.slug);
             });
     }
 
@@ -299,21 +299,21 @@ window.initMatchSetup = function (options) {
             version: s.oldVersion ? s.version : null }));
         const missing = players.some((p) => !p.name);
         if (missing) {
-            alert('Fill both seats before starting.');
+            alert(I18n.t("Fill both seats before starting."));
             return;
         }
         
         try {
             const resp = await platformFetch('/api/matches', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': "application/json" },
                 body: JSON.stringify({ game: selectedGame.slug, players: players.map(p => ({type:p.type,bot_id:p.botId,version:p.version})) })
             });
             const data = await resp.json();
             if (data.id) {
-                window.location.href = `/match/${data.id}`;
+                window.location.href = I18n.url(`/match/${data.id}`);
             } else {
-                alert('Failed to create match: ' + (data.error || data.detail || 'Unknown error'));
+                alert('Failed to create match: ' + (data.error || data.detail || I18n.t("Unknown error")));
             }
         } catch (e) {
             alert('Failed to create match: ' + e.message);

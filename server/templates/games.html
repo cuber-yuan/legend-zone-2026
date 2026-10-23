@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Games{% endblock %}
+{% block title %}{{ _("Games") }}{% endblock %}
 
 {% block content %}
 {% set arena_games = [
@@ -84,17 +84,17 @@
     <div class="catalog-card-head">
       <span class="catalog-icon">{{ game_icon(game.icon) }}</span>
       <div class="min-w-0">
-        <div class="games-meta text-gray-400 mb-1">{{ game.format }}</div>
-        <h3 class="text-lg font-semibold text-gray-900">{{ game.name }}</h3>
+        <div class="games-meta text-gray-400 mb-1">{{ _(game.format) }}</div>
+        <h3 class="text-lg font-semibold text-gray-900">{{ _(game.name) }}</h3>
       </div>
     </div>
-    <p class="catalog-description">{{ game.description }}</p>
+    <p class="catalog-description">{{ _(game.description) }}</p>
     <div class="catalog-foot">
       <div class="flex flex-wrap gap-1.5">
-        <span class="catalog-tag">{{ game.tag }}</span>
-        {% if arena %}<span class="catalog-tag">Human + Bot</span>{% endif %}
+        <span class="catalog-tag">{{ _(game.tag) }}</span>
+        {% if arena %}<span class="catalog-tag">{{ _("Human + Bot") }}</span>{% endif %}
       </div>
-      <span class="catalog-open">Open game <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+      <span class="catalog-open">{{ _("Open game") }} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
     </div>
   </a>
   {% endfor %}
@@ -118,17 +118,17 @@
 
   <section class="bg-white p-4 sm:p-6 rounded-lg shadow-md" aria-labelledby="arena-title">
     <div class="flex items-center justify-between gap-3 mb-2">
-      <h2 id="arena-title" class="text-xl sm:text-2xl font-semibold text-gray-900">Bot Arenas</h2>
+      <h2 id="arena-title" class="text-xl sm:text-2xl font-semibold text-gray-900">{{ _("Bot Arenas") }}</h2>
     </div>
-    <p class="text-sm text-gray-500 mb-5">Explore the rules and sample bots here. Start a Human or Bot match from Game Tables on the homepage.</p>
+    <p class="text-sm text-gray-500 mb-5">{{ _("Explore the rules and sample bots here. Start a Human or Bot match from Game Tables on the homepage.") }}</p>
     {{ game_cards(arena_games, true) }}
   </section>
 
   <section class="bg-white p-4 sm:p-6 rounded-lg shadow-md" aria-labelledby="solo-title">
     <div class="flex items-center justify-between gap-3 mb-2">
-      <h2 id="solo-title" class="text-xl sm:text-2xl font-semibold text-gray-900">Solo &amp; Practice</h2>
+      <h2 id="solo-title" class="text-xl sm:text-2xl font-semibold text-gray-900">{{ _("Solo") }} &amp; {{ _("Practice") }}</h2>
     </div>
-    <p class="text-sm text-gray-500 mb-5">A quick game or a focused practice session. Jump straight in.</p>
+    <p class="text-sm text-gray-500 mb-5">{{ _("A quick game or a focused practice session. Jump straight in.") }}</p>
     {{ game_cards(solo_games, false) }}
   </section>
 </div>

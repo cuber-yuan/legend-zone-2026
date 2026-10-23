@@ -1,7 +1,7 @@
 <div class="game-heading-actions">
   <a class="game-matches-nav" href="{{ url_for('main.matches') }}?game={{ matches_game | urlencode }}">
-    <span>View Matches</span>
+    <span>{{ _("View Matches") }}</span>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
   </a>
-  <button id="btn-create-table" class="game-create-match" type="button">Create Game</button>
+  <button id="btn-create-table" class="game-create-match" type="button">{{ _("Create Game") }}</button>
 </div>

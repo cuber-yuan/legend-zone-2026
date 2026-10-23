@@ -1,70 +1,70 @@
 {% extends 'base.html' %}
-{% block title %}Matches{% endblock %}
+{% block title %}{{ _("Matches") }}{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='match-table.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='bot-rating.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='match-search.css') }}">
 <div class="matches-browser">
   <section class="matches-card">
-    <header class="matches-heading"><h1>Matches</h1></header>
+    <header class="matches-heading"><h1>{{ _("Matches") }}</h1></header>
     <form id="match-filters" class="matches-filters">
-      <label class="matches-field" for="filter-game">Game
-        <select id="filter-game" name="game" aria-label="Game"><option value="">All games</option>
-          {% for game in games %}<option value="{{ game.slug }}">{{ game.name }}</option>{% endfor %}
+      <label class="matches-field" for="filter-game">{{ _("Game") }}
+        <select id="filter-game" name="game" aria-label="{{ _("Game") }}"><option value="">{{ _("All games") }}</option>
+          {% for game in games %}<option value="{{ game.slug }}">{{ _(game.name) }}</option>{% endfor %}
         </select>
       </label>
       <div class="matches-picker matches-wide">
-        <label class="matches-field" for="filter-bot-search">Participating Bots
-          <input id="filter-bot-search" type="search" placeholder="Search Bot name, ID or author" maxlength="100" autocomplete="off" aria-controls="bot-options">
+        <label class="matches-field" for="filter-bot-search">{{ _("Participating Bots") }}
+          <input id="filter-bot-search" type="search" placeholder="{{ _("Search Bot name, ID or author") }}" maxlength="100" autocomplete="off" aria-controls="bot-options">
         </label>
-        <div id="bot-selected" class="matches-selected" role="group" aria-label="Selected Bots"></div>
-        <div id="bot-options" class="matches-options" role="group" aria-label="Bot search results" hidden></div>
+        <div id="bot-selected" class="matches-selected" role="group" aria-label="{{ _("Selected Bots") }}"></div>
+        <div id="bot-options" class="matches-options" role="group" aria-label="{{ _("Bot search results") }}" hidden></div>
       </div>
       <div class="matches-picker">
-        <label class="matches-field" for="filter-author-search">Bot author
-          <input id="filter-author-search" type="search" placeholder="Search username" maxlength="40" autocomplete="off" aria-controls="author-options">
+        <label class="matches-field" for="filter-author-search">{{ _("Bot author") }}
+          <input id="filter-author-search" type="search" placeholder="{{ _("Search username") }}" maxlength="40" autocomplete="off" aria-controls="author-options">
         </label>
-        <div id="author-selected" class="matches-selected" role="group" aria-label="Selected author"></div>
-        <div id="author-options" class="matches-options" role="group" aria-label="Author search results" hidden></div>
+        <div id="author-selected" class="matches-selected" role="group" aria-label="{{ _("Selected author") }}"></div>
+        <div id="author-options" class="matches-options" role="group" aria-label="{{ _("Author search results") }}" hidden></div>
       </div>
       {#
-      <label class="matches-field matches-mode" for="filter-bot-mode">Bot matching
-        <select id="filter-bot-mode" name="bot_mode" aria-label="Bot matching"><option value="all">All selected Bots</option><option value="any">Any selected Bot</option></select>
+      <label class="matches-field matches-mode" for="filter-bot-mode">{{ _("Bot matching") }}
+        <select id="filter-bot-mode" name="bot_mode" aria-label="{{ _("Bot matching") }}"><option value="all">{{ _("All selected Bots") }}</option><option value="any">{{ _("Any selected Bot") }}</option></select>
       </label>
       #}
       <details class="matches-advanced matches-full">
-        <summary>Advanced Filters</summary>
+        <summary>{{ _("Advanced Filters") }}</summary>
         <div class="matches-advanced-fields">
-          <label class="matches-field" for="filter-status">Status
-            <select id="filter-status" name="status" aria-label="Status"><option value="all">All statuses</option><option value="playing">In progress</option><option value="finished">Finished</option><option value="interrupted">Interrupted</option></select>
+          <label class="matches-field" for="filter-status">{{ _("Status") }}
+            <select id="filter-status" name="status" aria-label="{{ _("Status") }}"><option value="all">{{ _("All statuses") }}</option><option value="playing">{{ _("In progress") }}</option><option value="finished">{{ _("Finished") }}</option><option value="interrupted">{{ _("Interrupted") }}</option></select>
           </label>
-          <label class="matches-field" for="filter-rating">Rating
-            <select id="filter-rating" name="rating" aria-label="Rating"><option value="all">All</option><option value="rated">Rated</option><option value="unrated">Unrated</option></select>
+          <label class="matches-field" for="filter-rating">{{ _("Rating") }}
+            <select id="filter-rating" name="rating" aria-label="{{ _("Rating") }}"><option value="all">{{ _("All") }}</option><option value="rated">{{ _("Rated") }}</option><option value="unrated">{{ _("Unrated") }}</option></select>
           </label>
-          <label class="matches-field" for="filter-from">Created from
+          <label class="matches-field" for="filter-from">{{ _("Created from") }}
             <input id="filter-from" type="datetime-local" step="1">
           </label>
-          <label class="matches-field" for="filter-to">Created through
+          <label class="matches-field" for="filter-to">{{ _("Created through") }}
             <input id="filter-to" type="datetime-local" step="1">
           </label>
         </div>
       </details>
       <div class="matches-actions matches-full">
-        <button class="matches-button primary" type="submit">Apply Filters</button>
-        <button class="matches-button" id="filter-clear" type="button">Clear Filters</button>
+        <button class="matches-button primary" type="submit">{{ _("Apply Filters") }}</button>
+        <button class="matches-button" id="filter-clear" type="button">{{ _("Clear Filters") }}</button>
       </div>
     </form>
   </section>
-  <section class="matches-card" aria-label="Matching matches">
-    <div class="matches-results-heading"><p id="match-summary" role="status" aria-live="polite">Loading matches…</p><button id="match-refresh" class="matches-button" type="button">Refresh</button></div>
+  <section class="matches-card" aria-label="{{ _("Matching matches") }}">
+    <div class="matches-results-heading"><p id="match-summary" role="status" aria-live="polite">{{ _("Loading matches…") }}</p><button id="match-refresh" class="matches-button" type="button">{{ _("Refresh") }}</button></div>
     <p id="match-feedback" class="matches-feedback" role="status" aria-live="polite" hidden></p>
     <div id="match-results" aria-busy="true">
       {% with match_table_id='search-matches-tbody' %}{% include 'components/match_table.html' %}{% endwith %}
     </div>
     <div class="matches-pagination">
-      <button id="match-previous" class="matches-button" type="button" disabled>Previous</button>
+      <button id="match-previous" class="matches-button" type="button" disabled>{{ _("Previous") }}</button>
       <span id="match-page"></span>
-      <button id="match-next" class="matches-button" type="button" disabled>Next</button>
+      <button id="match-next" class="matches-button" type="button" disabled>{{ _("Next") }}</button>
     </div>
   </section>
 </div>

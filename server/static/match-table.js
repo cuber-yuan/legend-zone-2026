@@ -1,7 +1,7 @@
 // Shared by the homepage and Bot details; values are escaped before markup.
 window.MatchTable = (() => {
     function escapeHtml(value) {
-        return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+        return String(value ?? '').replace(/[&<>"']/g, char => ({'&':"&amp;",'<':"&lt;",'>':"&gt;",'"':"&quot;","'":'&#39;'}[char]));
     }
     const escapeAttr = escapeHtml;
     const GLYPH = {
@@ -27,10 +27,10 @@ window.MatchTable = (() => {
         const cls = isHuman ? (tones[tone] || tones.blue) : 'lm-bot-chip bot-rating-label';
         const hasRating = typeof rating === 'number' && Number.isFinite(rating);
         const ratingAttr = isHuman ? '' : ` data-bot-rating="${hasRating ? rating : ''}"`;
-        const ratingTitle = !isHuman && hasRating ? ` · Current rating: ${rating.toFixed(2)}` : '';
-        const glyph = glyphSvg(isHuman ? 'human' : 'bot', ' class="w-3.5 h-3.5 mr-1 opacity-80 flex-none"');
+        const ratingTitle = !isHuman && hasRating ? I18n.t(" · Current rating: {0}", rating.toFixed(2)) : '';
+        const glyph = glyphSvg(isHuman ? 'human' : 'bot', " class=\"w-3.5 h-3.5 mr-1 opacity-80 flex-none\"");
         const badge = isWinner
-            ? '<span class="absolute -top-1.5 -right-1.5 flex items-center justify-center w-4 h-4 rounded-full bg-green-500 text-white text-[10px] font-bold shadow" title="Winner">W</span>'
+            ? `<span class="absolute -top-1.5 -right-1.5 flex items-center justify-center w-4 h-4 rounded-full bg-green-500 text-white text-[10px] font-bold shadow" title="${I18n.t("Winner")}">W</span>`
             : '';
         const versionHtml = version ? `<span class="ml-1 text-xs font-normal opacity-70 flex-none">v${escapeHtml(version)}</span>` : '';
         // The name is the only unbounded part of the chip, so it gets its own box
@@ -38,10 +38,10 @@ window.MatchTable = (() => {
         const inner = `${glyph}<span class="lm-pname">${escapeHtml(name)}</span>${versionHtml}${badge}`;
         // Old rows recorded the seat as the literal "HUMAN" and never stored who it
         // was, so there is no profile to open for those.
-        const href = botId ? `/bot/${encodeURIComponent(botId)}`
-            : (isHuman && name !== 'HUMAN' ? `/profile/${encodeURIComponent(name)}` : null);
+        const href = botId ? I18n.url(`/bot/${encodeURIComponent(botId)}`)
+            : (isHuman && name !== 'HUMAN' ? I18n.url(`/profile/${encodeURIComponent(name)}`) : null);
         if (href) {
-            const label = botId ? 'View bot' : 'View profile';
+            const label = botId ? I18n.t("View bot") : I18n.t("View profile");
             return `<a href="${escapeAttr(href)}"${ratingAttr} class="lm-chip relative inline-flex items-center px-2.5 py-1 rounded-full ${cls} text-sm font-medium whitespace-nowrap transition-colors" title="${escapeAttr(label + ' — ' + name + ratingTitle)}">${inner}</a>`;
         }
         return `<span${ratingAttr} class="lm-chip relative inline-flex items-center px-2.5 py-1 rounded-full ${cls} text-sm font-medium whitespace-nowrap"${ratingTitle ? ` title="${escapeAttr('Current rating: ' + rating.toFixed(2))}"` : ''}>${inner}</span>`;
@@ -49,7 +49,7 @@ window.MatchTable = (() => {
 
     function ratingChange(delta) {
         if (typeof delta !== 'number' || !Number.isFinite(delta)) {
-            return '<span class="lm-rating lm-rating-neutral" title="Rating change unavailable">-</span>';
+            return `<span class="lm-rating lm-rating-neutral" title="${I18n.t("Rating change unavailable")}">-</span>`;
         }
         const rounded = Number(delta.toFixed(2));
         const tone = rounded > 0 ? 'up' : rounded < 0 ? 'down' : 'neutral';
@@ -57,7 +57,7 @@ window.MatchTable = (() => {
         return `<span class="lm-rating lm-rating-${tone}">${label}</span>`;
     }
 
-    function render(tbody, matches, emptyMessage = 'No matches yet.', {showRatingDelta = false, showStatus = false} = {}) {
+    function render(tbody, matches, emptyMessage = I18n.t("No matches yet."), {showRatingDelta = false, showStatus = false} = {}) {
         if (!tbody) return;
         tbody.innerHTML = '';
         if (!matches.length) {
@@ -78,28 +78,28 @@ window.MatchTable = (() => {
                 : [p1Card, p2Card]).filter(Boolean);
             const playersStr = cards.length
                 ? `<span class="lm-players">${cards.join('')}</span>`
-                : '<span class="lm-dash">—</span>';
+                : "<span class=\"lm-dash\">—</span>";
 
             const live = match.status === 'playing';
-            let replayLink = '<span class="lm-dash">—</span>';
+            let replayLink = "<span class=\"lm-dash\">—</span>";
             if (match.status === 'finished' || live) {
-                const label = live ? 'Watch live' : 'Watch replay';
+                const label = live ? I18n.t("Watch live") : I18n.t("Watch replay");
                 // No visible text, so the accessible name comes from aria-label.
-                replayLink = `<a href="/match/${encodeURIComponent(match.id)}" class="lm-watch${live ? ' live' : ''}" title="${label}" aria-label="${label}">`
+                replayLink = `<a href="${I18n.url(`/match/${encodeURIComponent(match.id)}`)}" class="lm-watch${live ? ' live' : ''}" title="${label}" aria-label="${label}">`
                     + (live
-                        ? '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span class="lm-dot" aria-hidden="true"></span>'
-                        : '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>')
+                        ? "<svg class=\"w-4 h-4\" fill=\"currentColor\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M8 5v14l11-7z\"/></svg><span class=\"lm-dot\" aria-hidden=\"true\"></span>"
+                        : "<svg class=\"w-4 h-4\" fill=\"currentColor\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M8 5v14l11-7z\"/></svg>")
                     + '</a>';
             }
 
             let date = fmtLocal(match.created_at);
-            const states = {playing: 'In progress', finished: 'Finished', interrupted: 'Interrupted'};
+            const states = {playing: I18n.t("In progress"), finished: I18n.t("Finished"), interrupted: I18n.t("Interrupted")};
             const state = match.display_status || match.status;
             const statusHtml = showStatus ? `<span class="lm-status">${escapeHtml(states[state] || state)}</span>` : '';
 
             tbody.innerHTML += `
                 <tr>
-                    <td>${showRatingDelta ? ratingChange(match.rating_delta) : escapeHtml(match.game)}${statusHtml}</td>
+                    <td>${showRatingDelta ? ratingChange(match.rating_delta) : escapeHtml(I18n.t(match.game))}${statusHtml}</td>
                     <td>${playersStr}</td>
                     <td>${replayLink}</td>
                     <td class="lm-time hidden sm:table-cell" title="${escapeHtml(match.created_at || '')}">${escapeHtml(date)}</td>

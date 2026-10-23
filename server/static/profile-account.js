@@ -37,7 +37,7 @@
 
   function setBusy(value) {
     busy = value;
-    modal.querySelectorAll('input, button').forEach(element => { element.disabled = value; });
+    modal.querySelectorAll("input, button").forEach(element => { element.disabled = value; });
     avatarControls();
   }
 
@@ -46,8 +46,8 @@
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     previewUrl = null;
     const file = avatarFile.files[0];
-    if (file && (file.size > 4 * 1024 * 1024 || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type))) {
-      avatarFeedback.textContent = 'Choose a PNG, JPEG or WebP image up to 4 MiB.';
+    if (file && (file.size > 4 * 1024 * 1024 || !["image/png", "image/jpeg", "image/webp"].includes(file.type))) {
+      avatarFeedback.textContent = I18n.t("Choose a PNG, JPEG or WebP image up to 4 MiB.");
       avatarFeedback.dataset.error = 'true';
       avatarFeedback.hidden = false;
       clearPreview();
@@ -70,20 +70,20 @@
       const response = await platformFetch('/api/account/avatar', {
         method: removing ? 'DELETE' : 'POST', ...(removing ? {} : {body}),
       });
-      if (response.redirected) throw new Error('Your session has expired. Please sign in again.');
+      if (response.redirected) throw new Error(I18n.t("Your session has expired. Please sign in again."));
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Unable to update your avatar. Please try again.');
+      if (!response.ok) throw new Error(typeof data.detail === 'string' ? I18n.t(data.detail) : I18n.t("Unable to update your avatar. Please try again."));
       avatarUrl = data.avatar_url ? `${data.avatar_url}?v=${Date.now()}` : null;
-      document.querySelectorAll('[data-own-avatar]').forEach(image => {
+      document.querySelectorAll("[data-own-avatar]").forEach(image => {
         image.src = avatarUrl || defaultAvatar;
         if (image.closest('.nav-avatar')) image.hidden = !avatarUrl;
       });
-      document.querySelectorAll('[data-avatar-initial]').forEach(initial => { initial.hidden = Boolean(avatarUrl); });
+      document.querySelectorAll("[data-avatar-initial]").forEach(initial => { initial.hidden = Boolean(avatarUrl); });
       clearPreview();
-      avatarFeedback.textContent = data.message;
+      avatarFeedback.textContent = I18n.t(data.message);
       avatarFeedback.dataset.error = 'false';
     } catch (error) {
-      avatarFeedback.textContent = error.message;
+      avatarFeedback.textContent = I18n.t(error.message);
       avatarFeedback.dataset.error = 'true';
     } finally {
       avatarFeedback.hidden = false;
@@ -133,7 +133,7 @@
       closeModal();
     }
     if (event.key === 'Tab') {
-      const focusable = Array.from(modal.querySelectorAll('button:not(:disabled), input:not(:disabled)'));
+      const focusable = Array.from(modal.querySelectorAll("button:not(:disabled), input:not(:disabled)"));
       const first = focusable[0], last = focusable.at(-1);
       if (!first) {
         event.preventDefault();
@@ -152,7 +152,7 @@
     if (busy || !form.reportValidity()) return;
     feedback.hidden = true;
     if (password.value !== confirm.value) {
-      showFeedback('New passwords do not match.', true);
+      showFeedback(I18n.t("New passwords do not match."), true);
       confirm.focus();
       return;
     }
@@ -163,31 +163,31 @@
     });
     setBusy(true);
     form.setAttribute('aria-busy', 'true');
-    form.querySelectorAll('input, button').forEach(element => { element.disabled = true; });
+    form.querySelectorAll("input, button").forEach(element => { element.disabled = true; });
     close.disabled = true;
-    save.textContent = 'Saving…';
+    save.textContent = I18n.t("Saving…");
     modal.focus();
     try {
       const response = await platformFetch('/api/account/password', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': "application/json"},
         body,
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        showFeedback(typeof data.detail === 'string' ? data.detail : 'Unable to change your password. Please try again.', true);
+        showFeedback(typeof data.detail === 'string' ? I18n.t(data.detail) : I18n.t("Unable to change your password. Please try again."), true);
       } else {
         form.reset();
-        showFeedback(data.message || 'Password updated successfully.');
+        showFeedback(data.message || I18n.t("Password updated successfully."));
       }
     } catch {
-      showFeedback('Unable to connect. Please try again.', true);
+      showFeedback(I18n.t("Unable to connect. Please try again."), true);
     } finally {
       setBusy(false);
       form.removeAttribute('aria-busy');
-      form.querySelectorAll('input, button').forEach(element => { element.disabled = false; });
+      form.querySelectorAll("input, button").forEach(element => { element.disabled = false; });
       close.disabled = false;
-      save.textContent = 'Save Password';
+      save.textContent = I18n.t("Save Password");
       current.focus();
     }
   });

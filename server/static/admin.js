@@ -13,9 +13,9 @@
 
   async function request(url, options) {
     const response = await platformFetch(url, options);
-    if (response.redirected) throw new Error('Your session has expired. Please sign in again.');
+    if (response.redirected) throw new Error(I18n.t("Your session has expired. Please sign in again."));
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Unable to load the Bot match queue. Please try again.');
+    if (!response.ok) throw new Error(typeof data.detail === 'string' ? I18n.t(data.detail) : I18n.t("Unable to load the Bot match queue. Please try again."));
     return data;
   }
   function controls() {
@@ -25,21 +25,21 @@
   }
   botId.addEventListener('input', () => {
     checked = null; requestId = null; generation++;
-    info.textContent = 'Check this Bot ID before queueing matches.';
+    info.textContent = I18n.t("Check this Bot ID before queueing matches.");
     controls();
   });
   count.addEventListener('input', () => { requestId = null; });
   check.addEventListener('click', async () => {
     const token = ++generation, value = botId.value.trim();
     checked = null; busy = true; controls();
-    info.textContent = 'Checking Bot…';
+    info.textContent = I18n.t("Checking Bot…");
     try {
       const bot = await request(`/api/admin/bot-queue/bot?bot_id=${encodeURIComponent(value)}`, {cache: 'no-store'});
       if (token !== generation) return;
       checked = bot;
-      info.textContent = `${bot.name} — ${bot.game} · latest v${bot.version} · ${bot.opponents} available opponent(s).`;
-      if (!bot.opponents) info.textContent += ' Add another Bot in this game before queueing matches.';
-    } catch (error) { info.textContent = error.message; }
+      info.textContent = I18n.t("{0} — {1} · latest v{2} · {3} available opponent(s).", bot.name, I18n.t(bot.game), bot.version, bot.opponents);
+      if (!bot.opponents) info.textContent += I18n.t(" Add another Bot in this game before queueing matches.");
+    } catch (error) { info.textContent = I18n.t(error.message); }
     finally { busy = false; controls(); }
   });
   function detail(cell, text) {
@@ -52,19 +52,19 @@
       const batches = await request('/api/admin/bot-queue', {cache: 'no-store'});
       rows.replaceChildren();
       if (!batches.length) {
-        const row = rows.insertRow(), cell = row.insertCell(); cell.colSpan = 4; cell.textContent = 'No batches in this server session.';
+        const row = rows.insertRow(), cell = row.insertCell(); cell.colSpan = 4; cell.textContent = I18n.t("No batches in this server session.");
       }
       for (const batch of batches) {
         const row = rows.insertRow(), bot = row.insertCell(), progress = row.insertCell(), state = row.insertCell(), match = row.insertCell();
-        bot.textContent = batch.bot_name; detail(bot, batch.game); detail(bot, batch.bot_id);
+        bot.textContent = batch.bot_name; detail(bot, I18n.t(batch.game)); detail(bot, batch.bot_id);
         progress.textContent = `${batch.completed} / ${batch.total}`;
-        detail(progress, `${batch.rated} rated · ${batch.skipped} skipped`);
-        state.textContent = batch.status; if (batch.error) detail(state, batch.error);
+        detail(progress, I18n.t("{0} rated · {1} skipped", batch.rated, batch.skipped));
+        state.textContent = I18n.t(batch.status); if (batch.error) detail(state, batch.error);
         const id = batch.current_match || batch.last_match;
-        if (id) { const link = document.createElement('a'); link.href = `/match/${encodeURIComponent(id)}`; link.textContent = batch.current_match ? 'Current match' : 'Last match'; match.append(link); }
+        if (id) { const link = document.createElement('a'); link.href = I18n.url(`/match/${encodeURIComponent(id)}`); link.textContent = batch.current_match ? I18n.t("Current match") : I18n.t("Last match"); match.append(link); }
         else match.textContent = '—';
       }
-    } catch (error) { status.textContent = error.message; status.dataset.error = 'true'; }
+    } catch (error) { status.textContent = I18n.t(error.message); status.dataset.error = 'true'; }
     finally { loading = false; refresh.disabled = false; }
   }
   form.addEventListener('submit', async event => {
@@ -73,13 +73,13 @@
     // Reuse the ID after a lost response so retrying cannot enqueue 100 matches twice.
     requestId ||= (globalThis.crypto?.randomUUID?.() || `batch-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     const body = {bot_id: checked.id, count: Number(count.value), request_id: requestId};
-    busy = true; controls(); status.textContent = 'Queueing matches…'; status.dataset.error = 'false';
+    busy = true; controls(); status.textContent = I18n.t("Queueing matches…"); status.dataset.error = 'false';
     try {
-      const batch = await request('/api/admin/bot-queue', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
-      status.textContent = `Queued ${batch.total} matches for ${batch.bot_name} (${batch.game}).`;
+      const batch = await request('/api/admin/bot-queue', {method: 'POST', headers: {'Content-Type': "application/json"}, body: JSON.stringify(body)});
+      status.textContent = I18n.t("Queued {0} matches for {1} ({2}).", batch.total, batch.bot_name, I18n.t(batch.game));
       requestId = null;
       await load();
-    } catch (error) { status.textContent = error.message; status.dataset.error = 'true'; }
+    } catch (error) { status.textContent = I18n.t(error.message); status.dataset.error = 'true'; }
     finally { busy = false; controls(); }
   });
   refresh.addEventListener('click', load);
@@ -98,11 +98,11 @@
     const game = form.elements.game.value;
     const expected = game ? `${form.dataset.phrase} ${game}` : '';
     form.querySelector('.danger-hint').textContent = game
-      ? `Type exactly: ${expected}` : 'Select a game to see the required confirmation text.';
+      ? I18n.t("Type exactly: {0}", expected) : I18n.t("Select a game to see the required confirmation text.");
     form.querySelector('button').disabled = busy || !game || form.elements.confirmation.value !== expected;
   }
   forms.forEach(form => {
-    const status = form.querySelector('[role="status"]');
+    const status = form.querySelector("[role=\"status\"]");
     form.elements.game.addEventListener('change', () => {
       form.elements.confirmation.value = '';
       status.textContent = '';
@@ -119,20 +119,20 @@
         item.setAttribute('aria-busy', 'true');
         synchronize(item);
       });
-      status.textContent = 'Processing…';
+      status.textContent = I18n.t("Processing…");
       status.dataset.error = 'false';
       try {
         const response = await platformFetch(`/api/admin/operations/${form.dataset.action}`, {
-          method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body),
+          method: 'POST', headers: {'Content-Type': "application/json"}, body: JSON.stringify(body),
         });
-        if (response.redirected) throw new Error('Your session has expired. Please sign in again.');
+        if (response.redirected) throw new Error(I18n.t("Your session has expired. Please sign in again."));
         const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Operation failed. Please check the result before retrying.');
+        if (!response.ok) throw new Error(typeof data.detail === 'string' ? I18n.t(data.detail) : I18n.t("Operation failed. Please check the result before retrying."));
         status.textContent = form.dataset.action === 'clear-matches'
-          ? `Deleted ${data.deleted_matches} match records for ${body.game}.`
-          : `Reset ${data.reset_versions} Bot versions to 1500 for ${body.game}.`;
+          ? I18n.t("Deleted {0} match records for {1}.", data.deleted_matches, body.game)
+          : I18n.t("Reset {0} Bot versions to 1500 for {1}.", data.reset_versions, body.game);
       } catch (error) {
-        status.textContent = error.message;
+        status.textContent = I18n.t(error.message);
         status.dataset.error = 'true';
       } finally {
         // Require a fresh typed confirmation for every attempt, including retries.
@@ -165,9 +165,9 @@
 
   async function request(url, signal) {
     const response = await platformFetch(url, {signal, cache: 'no-store'});
-    if (response.redirected) throw new Error('Your session has expired. Please sign in again.');
+    if (response.redirected) throw new Error(I18n.t("Your session has expired. Please sign in again."));
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || 'Unable to load database. Please check your access and try again.');
+    if (!response.ok) throw new Error(data.error || I18n.t("Unable to load database. Please check your access and try again."));
     return data;
   }
   function setStatus(message, error = false) {
@@ -190,7 +190,7 @@
     grid.setAttribute('aria-busy', 'true');
     grid.hidden = true;
     summary.textContent = pageLabel.textContent = '';
-    setStatus('Loading records…');
+    setStatus(I18n.t("Loading records…"));
     const url = new URL(panel.dataset.tableUrl, location.origin);
     url.search = new URLSearchParams({name: table.value, page: target, page_size: size.value});
     try {
@@ -222,11 +222,11 @@
       pages = data.pages;
       grid.hidden = false;
       grid.scrollTop = grid.scrollLeft = 0;
-      summary.textContent = data.total ? `${(page - 1) * data.page_size + 1}–${Math.min(page * data.page_size, data.total)} of ${data.total} rows` : '0 rows';
+      summary.textContent = data.total ? I18n.t("{0}–{1} of {2} rows", (page - 1) * data.page_size + 1, Math.min(page * data.page_size, data.total), data.total) : I18n.t("0 rows");
       pageLabel.textContent = `${page} / ${pages}`;
       previous.disabled = page <= 1;
       next.disabled = page >= pages;
-      setStatus(data.rows.length ? '' : 'This table is empty.');
+      setStatus(data.rows.length ? '' : I18n.t("This table is empty."));
     } catch (error) {
       if (!signal.aborted) setStatus(error.message, true);
     } finally {
@@ -247,12 +247,12 @@
   async function initialize() {
     try {
       refresh.disabled = true;
-      setStatus('Loading tables…');
+      setStatus(I18n.t("Loading tables…"));
       const data = await request(panel.dataset.tablesUrl);
       table.replaceChildren(...data.tables.map(name => new Option(name, name)));
       table.disabled = !data.tables.length;
       if (data.tables.length) await load();
-      else setStatus('No tables found.');
+      else setStatus(I18n.t("No tables found."));
     } catch (error) {
       table.replaceChildren();
       setStatus(error.message, true);
@@ -309,23 +309,23 @@
     const seconds = Number(ladder.value) * 60;
     hours.disabled = ladder.disabled = save.disabled = refresh.disabled = true;
     form.setAttribute('aria-busy', 'true');
-    status.textContent = saving ? 'Saving site settings…' : 'Loading site settings…';
+    status.textContent = saving ? I18n.t("Saving site settings…") : I18n.t("Loading site settings…");
     status.dataset.error = 'false';
     try {
       const response = await platformFetch(endpoint, saving ? {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': "application/json"},
         body: JSON.stringify({chat_history_hours: value, ladder_interval_seconds: seconds}),
       } : {cache: 'no-store'});
-      if (response.redirected) throw new Error('Your session has expired. Please sign in again.');
+      if (response.redirected) throw new Error(I18n.t("Your session has expired. Please sign in again."));
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Unable to update site settings. Please try again.');
+      if (!response.ok) throw new Error(typeof data.detail === 'string' ? I18n.t(data.detail) : I18n.t("Unable to update site settings. Please try again."));
       hours.value = data.chat_history_hours;
       ladder.value = data.ladder_interval_seconds / 60;
       loaded = true;
-      status.textContent = saving ? 'Saved. Settings take effect within 30 seconds.' : '';
+      status.textContent = saving ? I18n.t("Saved. Settings take effect within 30 seconds.") : '';
     } catch (error) {
-      status.textContent = error.message;
+      status.textContent = I18n.t(error.message);
       status.dataset.error = 'true';
     } finally {
       hours.disabled = ladder.disabled = save.disabled = !loaded;

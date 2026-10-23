@@ -4,21 +4,21 @@
 
 {% block auth_fields %}
     <div class="auth-field">
-        <label for="username">Username</label>
+        <label for="username">{{ _("Username") }}</label>
         <input type="text" name="username" id="username" required minlength="4" maxlength="32" autocomplete="username" autocapitalize="none" spellcheck="false">
     </div>
     <div class="auth-field">
-        <label for="password">Password</label>
+        <label for="password">{{ _("Password") }}</label>
         <input type="password" name="password" id="password" required minlength="8" maxlength="256" autocomplete="new-password">
     </div>
     <div class="auth-field">
-        <label for="confirm_password">Confirm Password</label>
+        <label for="confirm_password">{{ _("Confirm Password") }}</label>
         <input type="password" name="confirm_password" id="confirm_password" required minlength="8" maxlength="256" autocomplete="new-password">
     </div>
     <div class="auth-field">
-        <label for="email">Email</label>
+        <label for="email">{{ _("Email") }}</label>
         <input type="email" name="email" id="email" required maxlength="254" autocomplete="email">
     </div>
 {% endblock %}
 
-{% block auth_switch %}Already have an account? <a href="{{ url_for('auth.login') }}">Login</a>{% endblock %}
+{% block auth_switch %}{{ _("Already have an account?") }} <a href="{{ url_for('auth.login') }}">{{ _("Login") }}</a>{% endblock %}

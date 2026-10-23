@@ -1,7 +1,7 @@
 {% macro section(title, id) -%}
 <details id="{{ id }}" class="group bg-white p-4 sm:p-6 rounded-lg shadow-md mt-8 min-w-0">
   <summary class="text-lg sm:text-xl font-bold list-none cursor-pointer flex justify-between items-center gap-3">
-    <span>{{ title }}</span>
+    <span>{{ _(title) }}</span>
     <span class="transition-transform duration-200 group-open:rotate-180" aria-hidden="true">&#9662;</span>
   </summary>
   <div class="mt-4 space-y-4 text-gray-700 leading-relaxed min-w-0">
@@ -11,6 +11,6 @@
 {%- endmacro %}
 
 {% macro execution_rules() -%}
-<p>Each decision starts a fresh bot process. Read one JSON object from stdin, print exactly one JSON object to stdout, then exit. Rebuild state from the supplied history; global variables do not persist between turns. Send debug messages to stderr.</p>
-<p>The execution time limit is 1 second per decision. A crash, timeout, malformed output, or illegal action forfeits the game. Human games do not change Bot Elo; completed matches between distinct bots update their ratings.</p>
+<p>{{ _("Each decision starts a fresh bot process. Read one JSON object from stdin, print exactly one JSON object to stdout, then exit. Rebuild state from the supplied history; global variables do not persist between turns. Send debug messages to stderr.") }}</p>
+<p>{{ _("The execution time limit is 1 second per decision. A crash, timeout, malformed output, or illegal action forfeits the game. Human games do not change Bot Elo; completed matches between distinct bots update their ratings.") }}</p>
 {%- endmacro %}

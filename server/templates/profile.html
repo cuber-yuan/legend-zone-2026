@@ -9,18 +9,18 @@
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
 <div class="profile-page">
-  
+
   <div class="mb-6">
     {% if user_not_found %}
       <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded mb-2">
-        user "{{ username }}" not found.
+        {{ _("user \"") }}{{ username }}{{ _("\" not found.") }}
       </div>
     {% endif %}
 
     <div class="profile-header">
       <!-- avatar on the far left -->
       <div class="profile-avatar">
-        <img src="{{ avatar_url or url_for('static', filename='default-avatar.png') }}" alt="avatar"
+        <img src="{{ avatar_url or url_for('static', filename='default-avatar.png') }}" alt="{{ _("avatar") }}"
              class="profile-avatar-image"{% if is_owner %} data-own-avatar{% endif %}>
       </div>
 
@@ -32,28 +32,28 @@
           {% elif current_user.is_authenticated %}
             {{ current_user.get_id() }}
           {% else %}
-            Unknown User
+            {{ _("Unknown User") }}
           {% endif %}
         </div>
 
         <div class="profile-date">
           {% if registered_at %}
-            Registered: <span data-utc="{{ registered_at }}">{{ registered_at }}</span>
+            {{ _("Registered:") }} <span data-utc="{{ registered_at }}">{{ registered_at }}</span>
           {% endif %}
         </div>
 
         <div class="profile-actions">
           {% if current_user.is_authenticated and not is_owner %}
             <a href="#"
-               class="profile-button">Send Message</a>
+               class="profile-button">{{ _("Send Message") }}</a>
           {% elif not current_user.is_authenticated %}
-            <a href="{{ url_for('auth.login') }}" class="profile-button">Login to message</a>
+            <a href="{{ url_for('auth.login') }}" class="profile-button">{{ _("Login to message") }}</a>
           {% endif %}
           {% if is_owner %}
             <button type="button" id="btn-create-bot"
-                    class="profile-button primary">Create Bot</button>
+                    class="profile-button primary">{{ _("Create Bot") }}</button>
             <button type="button" id="btn-account-settings" class="profile-button"
-                    aria-haspopup="dialog" aria-controls="account-settings-modal">Account Settings</button>
+                    aria-haspopup="dialog" aria-controls="account-settings-modal">{{ _("Account Settings") }}</button>
           {% endif %}
         </div>
       </div>
@@ -63,19 +63,19 @@
         {% if signature %}
           <div class="text-sm text-gray-600 italic break-words">{{ signature }}</div>
         {% else %}
-          <div class="text-sm text-gray-400">No signature provided.</div>
+          <div class="text-sm text-gray-400">{{ _("No signature provided.") }}</div>
         {% endif %}
       </div>
     </div>
   </div>
-  
+
   <!-- My bot list -->
   <!-- <h2 class="text-2xl font-bold mb-4">My bot list</h2> -->
-  
+
   {% if bots and bots|length > 0 %}
     {% for game, game_bots in bots | groupby('game') %}
       <section class="profile-group">
-        <h2 class="profile-group-title">{{ game }}</h2>
+        <h2 class="profile-group-title">{{ _(game) }}</h2>
         <div class="profile-bot-grid">
           {% for bot in game_bots %}
             <div class="profile-bot">
@@ -83,14 +83,14 @@
                 <div class="min-w-0">
                   <div class="profile-bot-name">
                     {{ bot.name }}
-                    {% if bot.latest_version %}<span class="profile-version">v{{ bot.latest_version }}</span>{% endif %}
+                    {% if bot.latest_version %}<span class="profile-version">{{ _("v") }}{{ bot.latest_version }}</span>{% endif %}
                   </div>
-                  
+
                   {% if bot.versions is not none %}
                     <div class="profile-stats">
-                      versions: {{ bot.versions }}
+                      {{ _("versions:") }} {{ bot.versions }}
                       {% if bot.latest_rating is not none %}
-                        &middot; rating {{ '%.1f'|format(bot.latest_rating) }}
+                        &middot; {{ _("rating") }} {{ '%.1f'|format(bot.latest_rating) }}
                       {% endif %}
                     </div>
                   {% endif %}
@@ -100,7 +100,7 @@
                 <p class="profile-description">{{ bot.latest_description }}</p>
               {% endif %}
               <div class="profile-bot-actions">
-                <a href="{{ url_for('main.bot_detail', bot_id=bot.id) }}" title="View bot" aria-label="View bot"
+                <a href="{{ url_for('main.bot_detail', bot_id=bot.id) }}" title="{{ _("View bot") }}" aria-label="{{ _("View bot") }}"
                    class="profile-icon-button">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -108,13 +108,13 @@
                   </svg>
                 </a>
                 {% if is_owner %}
-                  <a href="{{ url_for('upload.new_version_page', bot_id=bot.id) }}" title="Upload a new version" aria-label="Upload a new version"
+                  <a href="{{ url_for('upload.new_version_page', bot_id=bot.id) }}" title="{{ _("Upload a new version") }}" aria-label="{{ _("Upload a new version") }}"
                      class="profile-icon-button version">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
                   </a>
-                  <button type="button" title="Delete bot" aria-label="Delete bot"
+                  <button type="button" title="{{ _("Delete bot") }}" aria-label="{{ _("Delete bot") }}"
                           class="delete-bot-btn profile-icon-button delete"
                           data-bot-id="{{ bot.id }}" data-bot-name="{{ bot.name }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -131,7 +131,7 @@
   {% else %}
     {% if not user_not_found %}
       <div class="profile-empty">
-        You haven't created any bots yet.
+        {{ _("You haven't created any bots yet.") }}
       </div>
     {% endif %}
   {% endif %}
@@ -140,19 +140,18 @@
 <!-- Delete confirmation modal -->
 <div id="delete-modal" class="profile-modal hidden" role="dialog" aria-modal="true" aria-labelledby="delete-title">
   <div class="profile-modal-card">
-    <h3 id="delete-title" class="profile-modal-title">Delete bot</h3>
+    <h3 id="delete-title" class="profile-modal-title">{{ _("Delete bot") }}</h3>
     <p class="text-sm text-gray-700 mb-1">
-      This permanently deletes <span id="delete-bot-name" class="font-semibold"></span>,
-      all of its versions, and its uploaded files. This cannot be undone.
+      {{ _("This permanently deletes") }} <span id="delete-bot-name" class="font-semibold"></span>{{ _(",\n      all of its versions, and its uploaded files. This cannot be undone.") }}
     </p>
-    <p class="text-sm text-gray-700 mb-2">Type <span class="font-mono font-bold">DELETE</span> to confirm.</p>
+    <p class="text-sm text-gray-700 mb-2">{{ _("Type") }} <span class="font-mono font-bold">{{ _("DELETE") }}</span> {{ _("to confirm.") }}</p>
     <input id="delete-confirm-input" type="text" autocomplete="off"
            class="profile-field"
-           placeholder="DELETE">
+           placeholder="{{ _("DELETE") }}">
     <div class="flex justify-end space-x-3 mt-4">
-      <button id="delete-cancel" class="profile-button">Cancel</button>
+      <button id="delete-cancel" class="profile-button">{{ _("Cancel") }}</button>
       <button id="delete-confirm" disabled
-              class="profile-button danger">Delete</button>
+              class="profile-button danger">{{ _("Delete") }}</button>
     </div>
   </div>
 </div>
@@ -161,93 +160,93 @@
 {% if is_owner %}
 <div id="account-settings-modal" class="profile-modal hidden" role="dialog" aria-modal="true" aria-labelledby="account-settings-title" tabindex="-1">
   <div class="profile-modal-card">
-    <button class="profile-modal-close" id="account-settings-close" type="button" aria-label="Close account settings">
+    <button class="profile-modal-close" id="account-settings-close" type="button" aria-label="{{ _("Close account settings") }}">
       <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
-    <h2 id="account-settings-title" class="profile-modal-title">Account Settings</h2>
+    <h2 id="account-settings-title" class="profile-modal-title">{{ _("Account Settings") }}</h2>
     <form id="account-avatar-form" class="profile-settings-section" data-avatar-url="{{ avatar_url or '' }}">
-      <h3 class="profile-settings-title">Avatar</h3>
+      <h3 class="profile-settings-title">{{ _("Avatar") }}</h3>
       <div class="profile-avatar-editor">
-        <img id="account-avatar-preview" src="{{ avatar_url or url_for('static', filename='default-avatar.png') }}" alt="Avatar preview">
-        <label for="account-avatar-file">Choose image
+        <img id="account-avatar-preview" src="{{ avatar_url or url_for('static', filename='default-avatar.png') }}" alt="{{ _("Avatar preview") }}">
+        <label for="account-avatar-file">{{ _("Choose image") }}
           <input id="account-avatar-file" name="file" type="file" class="profile-field" accept="image/png,image/jpeg,image/webp" aria-describedby="account-avatar-hint">
         </label>
       </div>
-      <p id="account-avatar-hint" class="profile-settings-hint">PNG, JPEG or WebP, up to 4 MiB. Still images only, up to 4096 pixels per side and 16 megapixels. Images are cropped to a square.</p>
+      <p id="account-avatar-hint" class="profile-settings-hint">{{ _("PNG, JPEG or WebP, up to 4 MiB. Still images only, up to 4096 pixels per side and 16 megapixels. Images are cropped to a square.") }}</p>
       <p id="account-avatar-feedback" class="profile-account-feedback" role="status" aria-live="polite" hidden></p>
       <div class="profile-settings-actions">
-        <button type="button" id="account-avatar-remove" class="profile-button"{% if not avatar_url %} disabled{% endif %}>Restore Default</button>
-        <button type="submit" id="account-avatar-save" class="profile-button primary" disabled>Save Avatar</button>
+        <button type="button" id="account-avatar-remove" class="profile-button"{% if not avatar_url %} disabled{% endif %}>{{ _("Restore Default") }}</button>
+        <button type="submit" id="account-avatar-save" class="profile-button primary" disabled>{{ _("Save Avatar") }}</button>
       </div>
     </form>
-    <h3 class="profile-settings-title">Password</h3>
+    <h3 class="profile-settings-title">{{ _("Password") }}</h3>
     <form id="account-password-form" class="space-y-5">
       <div>
-        <label for="current-password" class="block text-sm font-medium text-gray-700">Current Password</label>
+        <label for="current-password" class="block text-sm font-medium text-gray-700">{{ _("Current Password") }}</label>
         <input id="current-password" name="current_password" class="profile-field" type="password" autocomplete="current-password" required maxlength="256">
       </div>
       <div>
-        <label for="new-password" class="block text-sm font-medium text-gray-700">New Password</label>
+        <label for="new-password" class="block text-sm font-medium text-gray-700">{{ _("New Password") }}</label>
         <input id="new-password" name="new_password" class="profile-field" type="password" autocomplete="new-password" required minlength="8" maxlength="256" aria-describedby="account-password-hint">
-        <p id="account-password-hint" class="text-sm text-gray-500 mt-2">Use at least 8 characters.</p>
+        <p id="account-password-hint" class="text-sm text-gray-500 mt-2">{{ _("Use at least 8 characters.") }}</p>
       </div>
       <div>
-        <label for="confirm-new-password" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
+        <label for="confirm-new-password" class="block text-sm font-medium text-gray-700">{{ _("Confirm New Password") }}</label>
         <input id="confirm-new-password" name="confirm_password" class="profile-field" type="password" autocomplete="new-password" required minlength="8" maxlength="256">
       </div>
       <p id="account-password-feedback" class="profile-account-feedback" role="status" aria-live="polite" hidden></p>
       <div class="flex justify-end space-x-3">
-        <button type="button" id="account-settings-cancel" class="profile-button">Cancel</button>
-        <button type="submit" id="account-password-save" class="profile-button primary">Save Password</button>
+        <button type="button" id="account-settings-cancel" class="profile-button">{{ _("Cancel") }}</button>
+        <button type="submit" id="account-password-save" class="profile-button primary">{{ _("Save Password") }}</button>
       </div>
     </form>
   </div>
 </div>
 <div id="uploadModal" class="profile-modal hidden" role="dialog" aria-modal="true" aria-labelledby="upload-title">
   <div class="profile-modal-card upload">
-    <button class="profile-modal-close" id="upload-close" type="button" aria-label="Close create bot dialog">
+    <button class="profile-modal-close" id="upload-close" type="button" aria-label="{{ _("Close create bot dialog") }}">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
 
-    <h2 id="upload-title" class="profile-modal-title">Create Bot</h2>
+    <h2 id="upload-title" class="profile-modal-title">{{ _("Create Bot") }}</h2>
 
     <form id="uploadForm" class="space-y-5">
       <div>
-        <label for="uploadGame" class="block text-sm font-medium text-gray-700">Game</label>
+        <label for="uploadGame" class="block text-sm font-medium text-gray-700">{{ _("Game") }}</label>
         <select id="uploadGame" class="profile-field" required>
-          <option value="">Select a game…</option>
+          <option value="">{{ _("Select a game…") }}</option>
         </select>
       </div>
       <div>
-        <label for="botName" class="block text-sm font-medium text-gray-700">Bot Name</label>
-        <input type="text" id="botName" autocomplete="off" class="profile-field" placeholder="Enter bot name" required>
+        <label for="botName" class="block text-sm font-medium text-gray-700">{{ _("Bot Name") }}</label>
+        <input type="text" id="botName" autocomplete="off" class="profile-field" placeholder="{{ _("Enter bot name") }}" required>
       </div>
       <div>
-        <label for="botDescription" class="block text-sm font-medium text-gray-700">Description</label>
-        <textarea id="botDescription" rows="3" autocomplete="off" class="profile-field" placeholder="Enter bot description" required></textarea>
+        <label for="botDescription" class="block text-sm font-medium text-gray-700">{{ _("Description") }}</label>
+        <textarea id="botDescription" rows="3" autocomplete="off" class="profile-field" placeholder="{{ _("Enter bot description") }}" required></textarea>
       </div>
       <div>
-        <label for="language" class="block text-sm font-medium text-gray-700">Language</label>
+        <label for="language" class="block text-sm font-medium text-gray-700">{{ _("Language") }}</label>
         <select id="language" class="profile-field">
           <option value="python3">Python3</option>
           <option value="cpp">C++</option>
         </select>
       </div>
       <div>
-        <label for="botFile" class="block text-sm font-medium text-gray-700">Bot Code File</label>
+        <label for="botFile" class="block text-sm font-medium text-gray-700">{{ _("Bot Code File") }}</label>
         <input type="file" id="botFile" autocomplete="off" class="profile-field">
       </div>
       <div>
-        <label for="sourceCode" class="block text-sm font-medium text-gray-700">Or Paste Source Code</label>
-        <textarea id="sourceCode" rows="6" autocomplete="off" class="profile-field" placeholder="Paste your source code here"></textarea>
+        <label for="sourceCode" class="block text-sm font-medium text-gray-700">{{ _("Or Paste Source Code") }}</label>
+        <textarea id="sourceCode" rows="6" autocomplete="off" class="profile-field" placeholder="{{ _("Paste your source code here") }}"></textarea>
       </div>
       <div class="flex justify-end space-x-4">
-        <button type="button" class="profile-button" id="upload-cancel">Cancel</button>
-        <button type="submit" class="profile-button primary">Upload</button>
+        <button type="button" class="profile-button" id="upload-cancel">{{ _("Cancel") }}</button>
+        <button type="submit" class="profile-button primary">{{ _("Upload") }}</button>
       </div>
     </form>
   </div>
@@ -295,16 +294,16 @@
       try {
         const resp = await platformFetch(`/bots/${targetBotId}/delete`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': "application/json" },
           body: JSON.stringify({ confirm: 'DELETE' })
         });
-        const data = await resp.json().catch(() => ({ message: 'Delete failed.' }));
+        const data = await resp.json().catch(() => ({ message: I18n.t("Delete failed.") }));
         if (resp.ok) {
           // Surface the partial-success warning before the reload wipes the page.
           if (data.files_remaining) alert(data.message);
           window.location.reload();
         } else {
-          alert(data.message || 'Delete failed.');
+          alert(data.message || I18n.t("Delete failed."));
           modal.classList.add('hidden');
         }
       } catch (e) {
@@ -328,11 +327,11 @@
       try {
         const resp = await platformFetch('/api/games');
         const games = await resp.json();
-        gameSelect.innerHTML = '<option value="">Select a game…</option>'
-          + games.map(g => `<option value="${g.name}">${g.name}</option>`).join('');
+        gameSelect.innerHTML = `<option value="">${I18n.t('Select a game…')}</option>`
+          + games.map(g => `<option value="${g.name}">${I18n.t(g.name)}</option>`).join('');
         gamesLoaded = true;
       } catch (e) {
-        gameSelect.innerHTML = '<option value="">Failed to load games</option>';
+        gameSelect.innerHTML = `<option value="">${I18n.t("Failed to load games")}</option>`;
       }
     }
 
@@ -353,10 +352,10 @@
       const file = document.getElementById('botFile').files[0];
       const sourceCode = document.getElementById('sourceCode').value.trim();
 
-      if (!game) { alert('Please select a game.'); return; }
-      if (botName.length < 4) { alert('Bot name must be at least 4 characters.'); return; }
-      if (botDescription.length < 4) { alert('Bot description must be at least 4 characters.'); return; }
-      if (!file && !sourceCode) { alert('Please upload a file or enter source code.'); return; }
+      if (!game) { alert(I18n.t("Please select a game.")); return; }
+      if (botName.length < 4) { alert(I18n.t("Bot name must be at least 4 characters.")); return; }
+      if (botDescription.length < 4) { alert(I18n.t("Bot description must be at least 4 characters.")); return; }
+      if (!file && !sourceCode) { alert(I18n.t("Please upload a file or enter source code.")); return; }
 
       const formData = new FormData();
       formData.append('botName', botName);
@@ -370,15 +369,15 @@
         const resp = await platformFetch('/upload-bot', { method: 'POST', body: formData });
         const result = await resp.json().catch(() => ({}));
         if (resp.ok) {
-          alert(result.message || 'Bot uploaded successfully!');
+          alert(result.message || I18n.t("Bot uploaded successfully!"));
           closeModal();
           window.location.reload();
         } else {
-          alert(result.message || 'Failed to upload bot.');
+          alert(result.message || I18n.t("Failed to upload bot."));
         }
       } catch (err) {
-        console.error('Error uploading bot:', err);
-        alert('An error occurred while uploading the bot.');
+        console.error(I18n.t("Error uploading bot:"), err);
+        alert(I18n.t("An error occurred while uploading the bot."));
       }
     });
   })();

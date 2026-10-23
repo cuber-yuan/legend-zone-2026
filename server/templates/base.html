@@ -1,12 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ 'zh-CN' if locale == 'zh' else 'en' }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %} - Legend Zone</title>
+    <title>{% block title %}{% endblock %} {{ _("- Legend Zone") }}</title>
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
     <link rel="stylesheet" href="/static/app.css">
+    <link rel="alternate" hreflang="en" href="{{ language_alternates.en }}">
+    <link rel="alternate" hreflang="zh-Hans" href="{{ language_alternates.zh }}">
+    <link rel="canonical" href="{{ language_alternates[locale] }}">
+    <script id="i18n-messages" type="application/json">{{ translations | tojson }}</script>
+    <script src="/static/i18n.js"></script>
     <script>window.PlatformUser = {{ current_user.public | tojson }};</script>
     <script src="/static/platform-client.js"></script>
     <style>
@@ -158,7 +163,7 @@
     <nav class="site-nav text-white shadow-lg">
         <div class="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
             <a href="{{ url_for('main.home') }}" class="flex items-center gap-3 shrink-0">
-                <img src="{{ url_for('static', filename='logo.svg') }}" alt="Legend Zone Logo" class="nav-logo">
+                <img src="{{ url_for('static', filename='logo.svg') }}" alt="{{ _("Legend Zone Logo") }}" class="nav-logo">
                 <span>
                     <span class="nav-word block">Legend Zone</span>
                     <!-- <span class="nav-kicker block">AI Battle Arena</span> -->
@@ -168,7 +173,7 @@
             <!-- Hamburger button (hidden on large screens) -->
             <button id="menu-toggle"
                 class="lg:hidden focus:outline-none"
-                aria-label="Toggle navigation" aria-controls="menu" aria-expanded="false">
+                aria-label="{{ _("Toggle navigation") }}" aria-controls="menu" aria-expanded="false">
                 <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
@@ -181,26 +186,27 @@
                        lg:static lg:bg-transparent lg:shadow-none">
                 <li>
                     <a href="{{ url_for('main.home') }}"
-                        class="nav-link {% if request.endpoint == 'main.home' %}is-active{% endif %}">Home</a>
+                        class="nav-link {% if request.endpoint == 'main.home' %}is-active{% endif %}">{{ _("Home") }}</a>
                 </li>
                 <li>
                     <a href="{{ url_for('main.games') }}"
-                        class="nav-link {% if request.endpoint == 'main.games' %}is-active{% endif %}">Games</a>
+                        class="nav-link {% if request.endpoint == 'main.games' %}is-active{% endif %}">{{ _("Games") }}</a>
                 </li>
                 <li>
                     <a href="{{ url_for('main.rating') }}"
-                        class="nav-link {% if request.endpoint == 'main.rating' %}is-active{% endif %}">Rating</a>
+                        class="nav-link {% if request.endpoint == 'main.rating' %}is-active{% endif %}">{{ _("Rating") }}</a>
                 </li>
                 <li>
                     <a href="{{ url_for('main.chat') }}"
-                        class="nav-link {% if request.endpoint == 'main.chat' %}is-active{% endif %}">Chat</a>
+                        class="nav-link {% if request.endpoint == 'main.chat' %}is-active{% endif %}">{{ _("Chat") }}</a>
                 </li>
                 {% if current_user.is_authenticated and current_user.is_admin %}
                 <li>
                     <a href="{{ url_for('admin.test_page') }}"
-                        class="nav-link {% if request.blueprint == 'admin' %}is-active{% endif %}">Admin Console</a>
+                        class="nav-link {% if request.blueprint == 'admin' %}is-active{% endif %}">{{ _("Admin Console") }}</a>
                 </li>
                 {% endif %}
+                <li><a id="language-switch" class="nav-btn nav-btn-ghost" href="{{ language_switch }}" lang="{{ 'en' if locale == 'zh' else 'zh-CN' }}" aria-label="{{ _('Switch to English') if locale == 'zh' else _('Switch to Chinese') }}">{{ _('English' if locale == 'zh' else '中文') }}</a></li>
                 <li class="nav-divider hidden lg:block" aria-hidden="true"></li>
                 {% if current_user.is_authenticated %}
                 <li>
@@ -214,14 +220,14 @@
                     </span>
                 </li>
                 <li>
-                    <a href="{{ url_for('auth.logout') }}" class="nav-btn nav-btn-ghost nav-btn-logout">Logout</a>
+                    <a href="{{ url_for('auth.logout') }}" class="nav-btn nav-btn-ghost nav-btn-logout">{{ _("Logout") }}</a>
                 </li>
                 {% else %}
                 <li>
-                    <a href="{{ url_for('auth.login') }}" class="nav-btn nav-btn-ghost">Login</a>
+                    <a href="{{ url_for('auth.login') }}" class="nav-btn nav-btn-ghost">{{ _("Login") }}</a>
                 </li>
                 <li>
-                    <a href="{{ url_for('auth.register') }}" class="nav-btn nav-btn-primary">Register</a>
+                    <a href="{{ url_for('auth.register') }}" class="nav-btn nav-btn-primary">{{ _("Register") }}</a>
                 </li>
                 {% endif %}
             </ul>
@@ -236,7 +242,7 @@
         </main>
 
         {% block floating_corner %}
-        
+
         {% endblock %}
 
             </div>
@@ -246,7 +252,7 @@
     {% block footer %}
     <footer class="bg-gray-800 text-white py-6 mt-10">
         <div class="max-w-screen-xl mx-auto px-4 text-center">
-            <p class="text-sm">&copy; 2026 Legend Zone. All rights reserved.</p>
+            <p class="text-sm">&copy; {{ _("2026 Legend Zone. All rights reserved.") }}</p>
         </div>
     </footer>
     {% endblock %}
@@ -271,7 +277,7 @@
                 toggle.setAttribute('aria-expanded', String(!hidden));
             });
 
-            document.querySelectorAll('[data-utc]').forEach(function (el) {
+            document.querySelectorAll("[data-utc]").forEach(function (el) {
                 var iso = el.getAttribute('data-utc');
                 var local = fmtLocal(iso, el.hasAttribute('data-utc-seconds'));
                 if (local) el.textContent = local;
