@@ -59,7 +59,7 @@
   "Unrated": "Unrated",
   "New Version": "New Version",
   "Rating History": "Rating History",
-  "showing last": "showing last",
+  "showing last {0} of {1}": "showing last {0} of {1}",
   "of": "of",
   "click a point to open its match": "click a point to open its match",
   "No rating history yet. This bot predates rating tracking, or has not finished a match.": "No rating history yet. This bot predates rating tracking, or has not finished a match.",

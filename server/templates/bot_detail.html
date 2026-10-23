@@ -63,7 +63,7 @@
       <h2 class="text-white font-semibold">{{ _("Rating History") }}</h2>
       <span class="text-gray-400 text-xs">
         {% if history_total > history_limit %}
-          {{ _("showing last") }} {{ history_limit }} {{ _("of") }} {{ history_total }} &middot;
+          {{ _("showing last {0} of {1}", history_limit, history_total) }} &middot;
         {% endif %}
         {{ _("click a point to open its match") }}
       </span>

@@ -15,9 +15,26 @@
   }
   window.I18n = Object.freeze({locale, t, url});
   document.addEventListener('click', event => {
-    const link = event.target.closest('#language-switch');
+    const link = event.target.closest('[data-language]');
     if (!link) return;
     const path = location.pathname.replace(/^\/(?:en|zh)(?=\/|$)/, '') || '/';
-    link.href = '/' + (locale === 'en' ? 'zh' : 'en') + path + location.search + location.hash;
+    link.href = '/' + link.dataset.language + path + location.search + location.hash;
   }, true);
+  document.addEventListener('DOMContentLoaded', () => {
+    const settings = document.getElementById('nav-settings');
+    const toggle = document.getElementById('settings-toggle');
+    const panel = document.getElementById('settings-panel');
+    if (!settings || !toggle || !panel) return;
+    function close() { panel.hidden = true; toggle.setAttribute('aria-expanded', 'false'); }
+    toggle.addEventListener('click', () => {
+      panel.hidden = !panel.hidden;
+      toggle.setAttribute('aria-expanded', String(!panel.hidden));
+    });
+    document.addEventListener('click', event => { if (!settings.contains(event.target)) close(); });
+    settings.addEventListener('focusout', event => { if (!settings.contains(event.relatedTarget)) close(); });
+    settings.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !panel.hidden) { event.preventDefault(); close(); toggle.focus(); }
+    });
+    document.getElementById('menu-toggle')?.addEventListener('click', close);
+  });
 })();
