@@ -9,6 +9,7 @@
   const previous = field('match-previous'), next = field('match-next'), refresh = field('match-refresh');
   let selectedBots = [], selectedAuthor = null, applied = new URLSearchParams(location.search);
   let dirty = false, loading = false, data = null, controller = null, restoreToken = 0;
+  let chartSignature = null;
 
   async function request(url, signal) {
     const response = await platformFetch(url, {cache: 'no-store', signal});
@@ -139,7 +140,6 @@
     controller?.abort(); const current = controller = new AbortController();
     loading = true; controls(); field('match-results').setAttribute('aria-busy', 'true');
     feedback.hidden = true;
-    field('match-head-to-head').hidden = true;
     try {
       const result = await request('/api/match-search?' + applied, current.signal);
       if (current.signal.aborted) return;
@@ -158,13 +158,21 @@
   }
   function renderHeadToHead(stats) {
     const panel = field('match-head-to-head');
-    panel.hidden = dirty || !stats;
-    if (panel.hidden) return;
+    if (dirty || !stats) { panel.hidden = true; return; }
+    const single = stats.bots.length === 1;
     const colors = ['#2563eb', '#f59e0b', '#94a3b8'];
     const entries = stats.bots.map(bot => ({
       label: selectedBots.find(item => item.id === bot.id)?.bot_name || bot.id,
       count: bot.wins,
     }));
+    const signature = JSON.stringify([stats, entries]);
+    if (signature === chartSignature && !panel.hidden) return;
+    chartSignature = signature;
+    field('head-to-head-title').textContent = single ? I18n.t('Bot Win Rate') : I18n.t('Head to Head');
+    if (single) {
+      entries[0].label = I18n.t('{0} · Wins', entries[0].label);
+      entries.push({label: I18n.t('Losses'), count: stats.losses});
+    }
     entries.push({label: I18n.t('Draws'), count: stats.draws});
     const legend = field('head-to-head-legend'), chart = field('head-to-head-chart');
     legend.replaceChildren();
@@ -185,6 +193,7 @@
     chart.style.background = stats.total ? `conic-gradient(${segments.join(',')})` : '#e2e8f0';
     chart.setAttribute('aria-label', descriptions.join('; '));
     field('head-to-head-total').textContent = stats.total ? I18n.t('{0} completed matches', stats.total) : I18n.t('No completed matches.');
+    if (panel.hidden) panel.hidden = false;
   }
   form.addEventListener('submit', event => {
     event.preventDefault();

@@ -27,30 +27,41 @@ def bot_participates(winner=False):
 
 
 def head_to_head(conn, where, args, bots):
-    counts = conn.execute(
-        "WITH outcomes AS (SELECT m.winner,"
-        f"CASE WHEN {bot_participates(winner=True)} THEN 0 "
-        f"WHEN {bot_participates(winner=True)} THEN 1 ELSE -1 END AS outcome "
-        f"FROM matches m WHERE {where} "
-        "AND m.status='finished' AND COALESCE(m.termination_reason,'')!='server_error' "
-        "AND m.winner IN (-1,0,1) "
+    outcomes = " ".join(
+        f"WHEN {bot_participates(winner=True)} THEN {index}"
+        for index in range(len(bots))
+    )
+    two_players = (
         "AND ((SELECT count(*) FROM match_players p WHERE p.match_id=m.id) + "
         f"(SELECT count(*) FROM {RAW_PLAYERS} WHERE "
         "NOT EXISTS (SELECT 1 FROM match_players p WHERE p.match_id=m.id "
-        "AND j.key='player_'||p.seat)))=2) "
+        "AND j.key='player_'||p.seat)))=2 "
+        if len(bots) == 2
+        else ""
+    )
+    counts = conn.execute(
+        "WITH outcomes AS (SELECT m.winner,"
+        f"CASE {outcomes} ELSE 1 END AS outcome "
+        f"FROM matches m WHERE {where} "
+        "AND m.status='finished' AND COALESCE(m.termination_reason,'')!='server_error' "
+        "AND m.winner IN (-1,0,1) "
+        f"{two_players}) "
         "SELECT count(*) total,COALESCE(sum(winner!=-1 AND outcome=0),0) a_wins,"
         "COALESCE(sum(winner!=-1 AND outcome=1),0) b_wins,"
         "COALESCE(sum(winner=-1),0) draws FROM outcomes",
-        [*[bots[0]] * 3, *[bots[1]] * 3, *args],
+        [*[bot for bot in bots for _ in range(3)], *args],
     ).fetchone()
-    return {
+    result = {
         "bots": [
-            {"id": bots[0], "wins": counts["a_wins"]},
-            {"id": bots[1], "wins": counts["b_wins"]},
+            {"id": bot, "wins": counts[key]}
+            for bot, key in zip(bots, ("a_wins", "b_wins"))
         ],
         "draws": counts["draws"],
         "total": counts["total"],
     }
+    if len(bots) == 1:
+        result["losses"] = counts["b_wins"]
+    return result
 
 
 def time_bound(value):
@@ -163,7 +174,7 @@ def search(
         ]
         stats = (
             head_to_head(conn, where, args, bots)
-            if len(bots) == 2 and bot_mode == "all"
+            if len(bots) == 1 or (len(bots) == 2 and bot_mode == "all")
             else None
         )
     matches = serialize_matches(db, rows)
