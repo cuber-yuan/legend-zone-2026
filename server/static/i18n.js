@@ -23,7 +23,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     const settings = document.getElementById('nav-settings');
     const toggle = document.getElementById('settings-toggle');
-    const panel = document.getElementById('settings-panel');
+    const panel = document.getElementById('nav-settings-panel');
     if (!settings || !toggle || !panel) return;
     function close() { panel.hidden = true; toggle.setAttribute('aria-expanded', 'false'); }
     toggle.addEventListener('click', () => {

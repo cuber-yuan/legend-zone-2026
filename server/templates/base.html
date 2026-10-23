@@ -236,10 +236,10 @@
                 {% endif %}
                 <li class="nav-divider hidden lg:block" aria-hidden="true"></li>
                 <li class="nav-settings" id="nav-settings">
-                    <button id="settings-toggle" class="nav-btn nav-btn-ghost" type="button" aria-label="{{ _('Settings') }}" title="{{ _('Settings') }}" aria-expanded="false" aria-controls="settings-panel">
+                    <button id="settings-toggle" class="nav-btn nav-btn-ghost" type="button" aria-label="{{ _('Settings') }}" title="{{ _('Settings') }}" aria-expanded="false" aria-controls="nav-settings-panel">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3h4l.5 2.5 1.5.9 2.4-.8 2 3.4-1.9 1.7v1.8l1.9 1.7-2 3.4-2.4-.8-1.5.9L14 21h-4l-.5-2.5-1.5-.9-2.4.8-2-3.4 1.9-1.7v-1.8L3.6 9.8l2-3.4 2.4.8 1.5-.9L10 3Z"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
-                    <div id="settings-panel" class="nav-settings-panel" role="group" aria-labelledby="settings-language-label" hidden>
+                    <div id="nav-settings-panel" class="nav-settings-panel" role="group" aria-labelledby="settings-language-label" hidden>
                         <p id="settings-language-label">{{ _('Language') }}</p>
                         {% for language, label in [('en', 'English'), ('zh', '简体中文')] %}
                         <a data-language="{{ language }}" href="{{ language_switch if language != locale else language_alternates[language] }}" lang="{{ 'en' if language == 'en' else 'zh-CN' }}"{% if language == locale %} aria-current="true"{% endif %}>{{ label }}</a>
