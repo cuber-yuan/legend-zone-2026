@@ -200,7 +200,7 @@ class Executor:
                     return None, result
         return binary, None
 
-    def execute(self, version, payload):
+    def execute(self, version, payload, *, timeout=None):
         text = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
         try:
             directory = package_path(self.settings, version)
@@ -212,7 +212,12 @@ class Executor:
                     error.input = text
                     return error
                 command = [str(binary)]
-            return self._run(command, entry.parent, text, self.settings.step_timeout)
+            return self._run(
+                command,
+                entry.parent,
+                text,
+                self.settings.step_timeout if timeout is None else timeout,
+            )
         except (ValueError, OSError):
             return Execution(
                 text,

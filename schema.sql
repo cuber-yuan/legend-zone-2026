@@ -41,6 +41,9 @@ CREATE TABLE games (
     author_id INTEGER,
     min_players INTEGER DEFAULT 2,
     max_players INTEGER DEFAULT 4,
+    bot_step_timeout_ms INTEGER NOT NULL DEFAULT 1000
+        CHECK (typeof(bot_step_timeout_ms) = 'integer'
+            AND bot_step_timeout_ms BETWEEN 100 AND 60000 AND bot_step_timeout_ms % 100 = 0),
     created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
     CHECK (min_players > 0 AND max_players >= min_players)
 );

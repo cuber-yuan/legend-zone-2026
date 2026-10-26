@@ -14,6 +14,11 @@
 .db-field { display: flex; flex-direction: column; gap: .35rem; color: #64748b; font-size: .75rem; min-width: 0; }
 .db-field:first-child { flex: 1; max-width: 24rem; }
 .site-settings-form .db-field { flex: 1 1 14rem; max-width: 24rem; }
+.game-time-limits { flex: 1 0 100%; min-width: 0; border-top: 1px solid #e2e8f0; padding-top: 1rem; }
+.game-time-limits legend { font-size: .875rem; font-weight: 600; color: #334155; }
+.game-time-limit-fields { display: flex; flex-wrap: wrap; gap: .75rem; }
+.game-time-limit-fields .db-field { flex: 1 1 9rem; max-width: none; }
+.game-time-limits p { margin-top: .65rem; font-size: .75rem; line-height: 1.5; color: #64748b; }
 #bot-queue-form .db-field:first-child { flex: 1 1 20rem; }
 #bot-queue-form .db-field:last-of-type { flex: 0 1 7rem; }
 #queue-status:empty { display: none; }

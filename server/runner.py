@@ -9,14 +9,14 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from threading import Condition, Event, Lock, Thread
 
-from .bots import list_bots, selected_version
 from .bot_queue import BotMatchQueue, MatchCapacityError
+from .bots import list_bots, selected_version
 from .execution import Execution, Executor
 from .game_state import snapshot
 from .games import GAMES, create_judge, get_game
 from .matches import create_match, persist_result
-from .trace import Trace
 from .site_settings import SiteSettings
+from .trace import Trace
 from .util import now, parse_json
 
 log = logging.getLogger(__name__)
@@ -36,6 +36,7 @@ class Job:
     pending_result: tuple | None = None
     trace: object = None
     error: str | None = None
+    step_timeout: float = 1
 
     def view(self):
         with self.condition:
@@ -124,7 +125,9 @@ class Matches:
         result = (
             self._human(job, seat, payload)
             if players[seat - 1]["type"] == "human"
-            else self.executor.execute(versions[seat - 1], payload)
+            else self.executor.execute(
+                versions[seat - 1], payload, timeout=job.step_timeout
+            )
         )
         action = result.action() if result.status == "success" else None
         return action, result
@@ -135,6 +138,7 @@ class Matches:
         try:
             row = self.db.one("SELECT * FROM matches WHERE id=?", (job.id,))
             game = get_game(row["game"])
+            job.step_timeout = SiteSettings(self.db).bot_step_timeout(game.slug)
             raw = parse_json(row["players"], {})
             players = [raw[f"player_{seat}"] for seat in (1, 2)]
             versions = [None, None]
@@ -164,7 +168,12 @@ class Matches:
             trace.event(
                 0,
                 "judge",
-                {"input": {}, "stdout": initial, "status": "success"},
+                {
+                    "input": {},
+                    "stdout": initial,
+                    "status": "success",
+                    "bot_step_timeout_ms": round(job.step_timeout * 1000),
+                },
                 "judge",
             )
             with job.condition:

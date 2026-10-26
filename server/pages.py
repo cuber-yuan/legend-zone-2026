@@ -10,13 +10,14 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from . import api_auth, api_bots, api_community, bots
-from .config import ROOT
 from .avatars import Avatars
+from .config import ROOT
 from .game_state import replay_frames
 from .games import GAMES, get_game
 from .i18n import catalog, page_url, translate
 from .matches import list_matches
 from .security import can_read_source, current_user, require_admin, require_user
+from .site_settings import SiteSettings
 from .util import parse_json
 
 router = APIRouter()
@@ -480,4 +481,7 @@ def game_page(slug: str, request: Request):
         match=demo,
         matches_game=game.slug,
         create_match_game={"slug": game.slug, "name": game.name},
+        bot_step_timeout_seconds=format(
+            SiteSettings(request.app.state.db).bot_step_timeout(game.slug), "g"
+        ),
     )

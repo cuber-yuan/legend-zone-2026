@@ -295,6 +295,7 @@
   if (!form) return;
   const hours = document.getElementById('chat-history-hours');
   const ladder = document.getElementById('ladder-interval-minutes');
+  const limits = Array.from(form.querySelectorAll('[data-game-time-limit]'));
   const save = document.getElementById('site-settings-save');
   const refresh = document.getElementById('site-settings-refresh');
   const status = document.getElementById('site-settings-status');
@@ -307,7 +308,9 @@
     busy = true;
     const value = Number(hours.value);
     const seconds = Number(ladder.value) * 60;
+    const timeLimits = Object.fromEntries(limits.map(input => [input.dataset.gameTimeLimit, Math.round(Number(input.value) * 1000)]));
     hours.disabled = ladder.disabled = save.disabled = refresh.disabled = true;
+    limits.forEach(input => { input.disabled = true; });
     form.setAttribute('aria-busy', 'true');
     status.textContent = saving ? I18n.t("Saving site settings…") : I18n.t("Loading site settings…");
     status.dataset.error = 'false';
@@ -315,20 +318,22 @@
       const response = await platformFetch(endpoint, saving ? {
         method: 'POST',
         headers: {'Content-Type': "application/json"},
-        body: JSON.stringify({chat_history_hours: value, ladder_interval_seconds: seconds}),
+        body: JSON.stringify({chat_history_hours: value, ladder_interval_seconds: seconds, bot_time_limits_ms: timeLimits}),
       } : {cache: 'no-store'});
       if (response.redirected) throw new Error(I18n.t("Your session has expired. Please sign in again."));
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(typeof data.detail === 'string' ? I18n.t(data.detail) : I18n.t("Unable to update site settings. Please try again."));
       hours.value = data.chat_history_hours;
       ladder.value = data.ladder_interval_seconds / 60;
+      limits.forEach(input => { input.value = data.bot_time_limits_ms[input.dataset.gameTimeLimit] / 1000; });
       loaded = true;
-      status.textContent = saving ? I18n.t("Saved. Settings take effect within 30 seconds.") : '';
+      status.textContent = saving ? I18n.t("Saved. Chat and ladder settings apply within 30 seconds; Bot time limits apply to newly started matches.") : '';
     } catch (error) {
       status.textContent = I18n.t(error.message);
       status.dataset.error = 'true';
     } finally {
       hours.disabled = ladder.disabled = save.disabled = !loaded;
+      limits.forEach(input => { input.disabled = !loaded; });
       refresh.disabled = false;
       busy = false;
       form.removeAttribute('aria-busy');

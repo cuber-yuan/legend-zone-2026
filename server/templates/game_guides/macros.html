@@ -12,5 +12,5 @@
 
 {% macro execution_rules() -%}
 <p>{{ _("Each decision starts a fresh bot process. Read one JSON object from stdin, print exactly one JSON object to stdout, then exit. Rebuild state from the supplied history; global variables do not persist between turns. Send debug messages to stderr.") }}</p>
-<p>{{ _("The execution time limit is 1 second per decision. A crash, timeout, malformed output, or illegal action forfeits the game. Human games do not change Bot Elo; completed matches between distinct bots update their ratings.") }}</p>
+<p>{{ _("Bot execution time limit: {0} s per decision. A crash, timeout, malformed output, or illegal action forfeits the game. Human games do not change Bot Elo; completed matches between distinct bots update their ratings.", bot_step_timeout_seconds) }}</p>
 {%- endmacro %}

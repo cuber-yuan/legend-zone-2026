@@ -4,11 +4,11 @@ from contextlib import closing
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictInt
 
-from .bots import list_bots
 from .admin_operations import OperationConflict, perform
 from .bot_queue import QueueConflict
+from .bots import list_bots
 from .security import require_admin, require_user
 from .site_settings import (
     MAX_CHAT_HISTORY_HOURS,
@@ -74,6 +74,7 @@ class SiteSettingsUpdate(BaseModel):
     ladder_interval_seconds: int = Field(
         ge=0, le=MAX_LADDER_INTERVAL_SECONDS, multiple_of=60, strict=True
     )
+    bot_time_limits_ms: dict[str, StrictInt] | None = None
 
 
 @router.get("/admin/settings")
@@ -86,7 +87,7 @@ def update_site_settings(
     body: SiteSettingsUpdate, request: Request, user=Depends(require_admin)
 ):
     return SiteSettings(request.app.state.db).update(
-        body.chat_history_hours, body.ladder_interval_seconds
+        body.chat_history_hours, body.ladder_interval_seconds, body.bot_time_limits_ms
     )
 
 

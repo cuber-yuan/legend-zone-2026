@@ -9,6 +9,7 @@ Legend Zone is a bot battle platform. Upload a Python or C++ program to compete 
 - Single-file and ZIP bot uploads, immutable versions, private source code, and authorized downloads. Upload requests are limited to 16 MiB.
 - Bot battles, human vs. bot matches, two-player matches, and automatic ladder matches. Selecting an older bot version disables rating changes for both players.
 - Live spectating, shared replay controls, and a public Debug panel showing bot input, output, and stderr for each turn.
+- Per-game Bot decision time limits in Admin Console settings, from 0.1 to 60 seconds. Each match keeps the limits selected when execution starts.
 - Bot labels colored continuously by the latest version's rating, leaderboards, rating history, user profiles, and recent matches for each bot.
 
 ## Technology and Deployment

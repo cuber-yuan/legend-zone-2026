@@ -51,6 +51,17 @@
         <label class="db-field" for="ladder-interval-minutes">{{ _("Automatic ladder interval (minutes)") }}
           <input id="ladder-interval-minutes" name="ladder_interval_minutes" type="number" min="0" max="10080" step="1" required disabled aria-describedby="site-settings-note">
         </label>
+        <fieldset class="game-time-limits">
+          <legend>{{ _('Bot time limits (seconds per decision)') }}</legend>
+          <div class="game-time-limit-fields">
+            {% for game in games %}
+            <label class="db-field" for="time-limit-{{ game.slug }}">{{ _(game.name) }}
+              <input id="time-limit-{{ game.slug }}" data-game-time-limit="{{ game.slug }}" type="number" min="0.1" max="60" step="0.1" required disabled aria-describedby="game-time-limits-note">
+            </label>
+            {% endfor %}
+          </div>
+          <p id="game-time-limits-note">{{ _('0.1–60 seconds per decision. New limits apply when a match starts; active matches keep their limits. Waiting for an execution slot is not timed. C++ compilation keeps its separate 60-second limit.') }}</p>
+        </fieldset>
         <button type="submit" id="site-settings-save" class="db-button" disabled>{{ _("Save") }}</button>
         <button type="button" id="site-settings-refresh" class="db-button">{{ _("Refresh") }}</button>
       </form>
