@@ -2,6 +2,7 @@
   const form = document.getElementById('bot-queue-form');
   if (!form) return;
   const botId = document.getElementById('queue-bot-id');
+  const opponentId = document.getElementById('queue-opponent-id');
   const count = document.getElementById('queue-match-count');
   const check = document.getElementById('queue-check-bot');
   const submit = document.getElementById('queue-submit');
@@ -20,25 +21,35 @@
   }
   function controls() {
     check.disabled = busy || !botId.value.trim();
-    submit.disabled = busy || !checked || checked.id !== botId.value.trim() || !checked.opponents;
-    botId.disabled = count.disabled = busy;
+    submit.disabled = busy || !checked || checked.id !== botId.value.trim()
+      || (checked.opponent?.id || '') !== opponentId.value.trim() || (!checked.opponent && !checked.opponents);
+    botId.disabled = opponentId.disabled = count.disabled = busy;
   }
-  botId.addEventListener('input', () => {
+  function invalidate() {
     checked = null; requestId = null; generation++;
     info.textContent = I18n.t("Check this Bot ID before queueing matches.");
     controls();
-  });
+  }
+  botId.addEventListener('input', invalidate);
+  opponentId.addEventListener('input', invalidate);
   count.addEventListener('input', () => { requestId = null; });
   check.addEventListener('click', async () => {
-    const token = ++generation, value = botId.value.trim();
+    const token = ++generation, value = botId.value.trim(), opponent = opponentId.value.trim();
     checked = null; busy = true; controls();
     info.textContent = I18n.t("Checking Bot…");
     try {
-      const bot = await request(`/api/admin/bot-queue/bot?bot_id=${encodeURIComponent(value)}`, {cache: 'no-store'});
+      const [bot, other] = await Promise.all([
+        request(`/api/admin/bot-queue/bot?bot_id=${encodeURIComponent(value)}`, {cache: 'no-store'}),
+        opponent ? request(`/api/admin/bot-queue/bot?bot_id=${encodeURIComponent(opponent)}`, {cache: 'no-store'}) : null,
+      ]);
       if (token !== generation) return;
-      checked = bot;
-      info.textContent = I18n.t("{0} — {1} · latest v{2} · {3} available opponent(s).", bot.name, I18n.t(bot.game), bot.version, bot.opponents);
-      if (!bot.opponents) info.textContent += I18n.t(" Add another Bot in this game before queueing matches.");
+      if (other && bot.game !== other.game) throw new Error(I18n.t('Both Bots must belong to the same game.'));
+      checked = {...bot, opponent: other};
+      info.textContent = other
+        ? I18n.t('{0} — {1} · latest v{2}.', bot.name, I18n.t(bot.game), bot.version)
+        : I18n.t("{0} — {1} · latest v{2} · {3} available opponent(s).", bot.name, I18n.t(bot.game), bot.version, bot.opponents);
+      if (other) info.textContent += ' ' + I18n.t('Against {0} · latest v{1}.', other.name, other.version);
+      else if (!bot.opponents) info.textContent += I18n.t(" Add another Bot in this game before queueing matches.");
     } catch (error) { info.textContent = I18n.t(error.message); }
     finally { busy = false; controls(); }
   });
@@ -57,6 +68,9 @@
       for (const batch of batches) {
         const row = rows.insertRow(), bot = row.insertCell(), progress = row.insertCell(), state = row.insertCell(), match = row.insertCell();
         bot.textContent = batch.bot_name; detail(bot, I18n.t(batch.game)); detail(bot, batch.bot_id);
+        if (batch.opponent_id) {
+          detail(bot, I18n.t('vs {0}', batch.opponent_name)); detail(bot, batch.opponent_id);
+        }
         progress.textContent = `${batch.completed} / ${batch.total}`;
         detail(progress, I18n.t("{0} rated · {1} skipped", batch.rated, batch.skipped));
         state.textContent = I18n.t(batch.status); if (batch.error) detail(state, batch.error);
@@ -72,11 +86,13 @@
     if (busy || submit.disabled || !form.reportValidity()) return;
     // Reuse the ID after a lost response so retrying cannot enqueue 100 matches twice.
     requestId ||= (globalThis.crypto?.randomUUID?.() || `batch-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-    const body = {bot_id: checked.id, count: Number(count.value), request_id: requestId};
+    const body = {bot_id: checked.id, opponent_id: checked.opponent?.id || null, count: Number(count.value), request_id: requestId};
     busy = true; controls(); status.textContent = I18n.t("Queueing matches…"); status.dataset.error = 'false';
     try {
       const batch = await request('/api/admin/bot-queue', {method: 'POST', headers: {'Content-Type': "application/json"}, body: JSON.stringify(body)});
-      status.textContent = I18n.t("Queued {0} matches for {1} ({2}).", batch.total, batch.bot_name, I18n.t(batch.game));
+      status.textContent = batch.opponent_id
+        ? I18n.t('Queued {0} matches: {1} vs {2} ({3}).', batch.total, batch.bot_name, batch.opponent_name, I18n.t(batch.game))
+        : I18n.t("Queued {0} matches for {1} ({2}).", batch.total, batch.bot_name, I18n.t(batch.game));
       requestId = null;
       await load();
     } catch (error) { status.textContent = I18n.t(error.message); status.dataset.error = 'true'; }

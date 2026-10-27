@@ -108,6 +108,7 @@ def dangerous_operation(
 
 class BotBatchRequest(BaseModel):
     bot_id: str = Field(min_length=1, max_length=100)
+    opponent_id: str | None = Field(default=None, max_length=100)
     count: int = Field(ge=1, le=100, strict=True)
     request_id: str = Field(min_length=8, max_length=80, pattern=r"^[a-zA-Z0-9-]+$")
 
@@ -132,7 +133,7 @@ def enqueue_bot_batch(
 ):
     try:
         return request.app.state.matches.bot_queue.enqueue(
-            body.bot_id, body.count, body.request_id
+            body.bot_id, body.count, body.request_id, body.opponent_id
         )
     except QueueConflict as error:
         raise HTTPException(409, str(error))

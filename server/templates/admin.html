@@ -73,14 +73,17 @@
         <label class="db-field" for="queue-bot-id">{{ _("Bot ID") }}
           <input id="queue-bot-id" name="bot_id" type="text" maxlength="100" required autocomplete="off" aria-describedby="queue-bot-info">
         </label>
-        <button type="button" id="queue-check-bot" class="db-button">{{ _("Check Bot") }}</button>
+        <label class="db-field" for="queue-opponent-id">{{ _('Second Bot ID (optional)') }}
+          <input id="queue-opponent-id" name="opponent_id" type="text" maxlength="100" autocomplete="off" aria-describedby="queue-bot-info">
+        </label>
+        <button type="button" id="queue-check-bot" class="db-button">{{ _("Check Bots") }}</button>
         <label class="db-field" for="queue-match-count">{{ _("Matches") }}
           <input id="queue-match-count" name="count" type="number" min="1" max="100" step="1" value="1" required>
         </label>
         <button type="submit" id="queue-submit" class="db-button" disabled>{{ _("Queue Matches") }}</button>
       </form>
       <p id="queue-bot-info" class="db-note" role="status" aria-live="polite">{{ _("Enter a Bot ID and check its game before queueing matches.") }}</p>
-      <p class="db-note">{{ _("Each match randomly selects another Bot in the same game; opponents may repeat and seats are randomized. Matches run one at a time using the latest versions and normal rating rules. Up to 100 matches per batch and 10 active batches. The queue survives page refreshes but is discarded when the server restarts.") }}</p>
+      <p class="db-note">{{ _("Leave the second Bot empty for random opponents. Otherwise, every match uses these two Bots, which must belong to the same game and may be identical. Seats are randomized; identical Bots do not change ratings. Matches run one at a time using the latest versions. Up to 100 matches per batch and 10 active batches. The queue survives page refreshes but is discarded when the server restarts.") }}</p>
       <p id="queue-status" class="db-status" role="status" aria-live="polite"></p>
       <div class="db-toolbar"><button type="button" id="queue-refresh" class="db-button">{{ _("Refresh Queue") }}</button></div>
       <div class="db-grid" role="region" aria-label="{{ _("Bot match batches") }}" tabindex="0">

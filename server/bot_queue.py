@@ -1,4 +1,4 @@
-"""A bounded, in-process FIFO for administrator-requested rated Bot matches."""
+"""A bounded, in-process FIFO for administrator-requested Bot matches."""
 
 import logging
 import random
@@ -49,13 +49,18 @@ class BotMatchQueue:
             if item["id"] != bot["id"]
         ]
 
-    def enqueue(self, bot_id, count, request_id):
+    def enqueue(self, bot_id, count, request_id, opponent_id=None):
+        opponent_id = (opponent_id or "").strip() or None
         if type(count) is not int or not 1 <= count <= 100:
             raise ValueError("Choose between 1 and 100 matches.")
         with self.lock:
             if request_id in self.batches:
                 existing = self.batches[request_id]
-                if existing["bot_id"] != bot_id or existing["total"] != count:
+                if (
+                    existing["bot_id"] != bot_id
+                    or existing["total"] != count
+                    or existing.get("opponent_id") != opponent_id
+                ):
                     raise QueueConflict(
                         "This request ID was already used for another batch."
                     )
@@ -70,12 +75,17 @@ class BotMatchQueue:
                     "The batch queue is full. Wait for a batch to finish."
                 )
             bot = self.lookup(bot_id)
-            if not bot["opponents"]:
+            opponent = self.lookup(opponent_id) if opponent_id else None
+            if opponent and opponent["game"] != bot["game"]:
+                raise ValueError("Both Bots must belong to the same game.")
+            if not opponent and not bot["opponents"]:
                 raise ValueError("This game has no other Bots available as opponents.")
             batch = {
                 "id": request_id,
                 "bot_id": bot_id,
                 "bot_name": bot["name"],
+                "opponent_id": opponent_id,
+                "opponent_name": opponent["name"] if opponent else None,
                 "game": bot["game"],
                 "total": count,
                 "completed": 0,
@@ -150,10 +160,15 @@ class BotMatchQueue:
         bot = self.lookup(batch["bot_id"])
         if bot["game"] != batch["game"]:
             raise ValueError("The selected Bot no longer belongs to this game.")
-        opponents = self._opponents({"id": bot["id"], "game": bot["game"]})
-        if not opponents:
-            raise ValueError("No opponents remain for this game.")
-        opponent = random.choice(opponents)
+        if batch.get("opponent_id"):
+            opponent = self.lookup(batch["opponent_id"])
+            if opponent["game"] != batch["game"]:
+                raise ValueError("Both Bots must belong to the same game.")
+        else:
+            opponents = self._opponents({"id": bot["id"], "game": bot["game"]})
+            if not opponents:
+                raise ValueError("No opponents remain for this game.")
+            opponent = random.choice(opponents)
         players = [
             {"type": "bot", "bot_id": bot["id"]},
             {"type": "bot", "bot_id": opponent["id"]},
