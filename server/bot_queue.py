@@ -91,8 +91,13 @@ class BotMatchQueue:
                 "completed": 0,
                 "rated": 0,
                 "skipped": 0,
+                "wins": 0,
+                "losses": 0,
+                "draws": 0,
+                "excluded": 0,
                 "status": "queued",
                 "current_match": None,
+                "current_primary_seat": None,
                 "last_match": None,
                 "error": None,
                 "created_at": now(),
@@ -137,7 +142,8 @@ class BotMatchQueue:
                 if match_id in self.matches.jobs:
                     return
             row = self.matches.db.one(
-                "SELECT status,rating_status FROM matches WHERE id=?", (match_id,)
+                "SELECT status,rating_status,winner,termination_reason FROM matches WHERE id=?",
+                (match_id,),
             )
             with self.lock:
                 if (
@@ -152,8 +158,22 @@ class BotMatchQueue:
                     return
                 batch["completed"] += 1
                 batch["rated" if row["rating_status"] == "applied" else "skipped"] += 1
+                if row["termination_reason"] in ("server_error", "unsupported") or row[
+                    "winner"
+                ] not in (-1, 0, 1):
+                    batch["excluded"] += 1
+                else:
+                    outcome = (
+                        "draws"
+                        if row["winner"] == -1
+                        else "wins"
+                        if row["winner"] == batch["current_primary_seat"]
+                        else "losses"
+                    )
+                    batch[outcome] += 1
                 batch["last_match"] = match_id
                 batch["current_match"] = None
+                batch["current_primary_seat"] = None
                 if batch["completed"] == batch["total"]:
                     batch["status"] = "completed"
                     return
@@ -169,17 +189,22 @@ class BotMatchQueue:
             if not opponents:
                 raise ValueError("No opponents remain for this game.")
             opponent = random.choice(opponents)
+        primary = {"type": "bot", "bot_id": bot["id"]}
         players = [
-            {"type": "bot", "bot_id": bot["id"]},
+            primary,
             {"type": "bot", "bot_id": opponent["id"]},
         ]
         random.shuffle(players)
+        primary_seat = next(
+            index for index, player in enumerate(players) if player is primary
+        )
         try:
             match_id = self.matches.create(bot["game"], players)
         except MatchCapacityError:
             return  # Respect the shared 32-match capacity, and retry next tick.
         with self.lock:
             batch["current_match"] = match_id
+            batch["current_primary_seat"] = primary_seat
             batch["status"] = "running"
 
     def _run(self):

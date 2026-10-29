@@ -8,6 +8,7 @@
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
+<script src="{{ url_for('static', filename='clipboard.js') }}" defer></script>
 <div class="profile-page">
 
   <div class="mb-6">
@@ -107,6 +108,11 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </a>
+                <button type="button" class="profile-icon-button" data-copy-bot-id data-bot-id="{{ bot.id }}"
+                        title="{{ _('Copy Bot ID') }}" aria-label="{{ _('Copy Bot ID') }}">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path data-copy-symbol d="M9 9h12v12H9zM5 15H3V3h12v2"/></svg>
+                </button>
+                <span data-copy-status class="profile-copy-status" role="status"></span>
                 {% if is_owner %}
                   <a href="{{ url_for('upload.new_version_page', bot_id=bot.id) }}" title="{{ _("Upload a new version") }}" aria-label="{{ _("Upload a new version") }}"
                      class="profile-icon-button version">

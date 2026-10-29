@@ -63,16 +63,19 @@
       const batches = await request('/api/admin/bot-queue', {cache: 'no-store'});
       rows.replaceChildren();
       if (!batches.length) {
-        const row = rows.insertRow(), cell = row.insertCell(); cell.colSpan = 4; cell.textContent = I18n.t("No batches in this server session.");
+        const row = rows.insertRow(), cell = row.insertCell(); cell.colSpan = 5; cell.textContent = I18n.t("No batches in this server session.");
       }
       for (const batch of batches) {
-        const row = rows.insertRow(), bot = row.insertCell(), progress = row.insertCell(), state = row.insertCell(), match = row.insertCell();
+        const row = rows.insertRow(), bot = row.insertCell(), progress = row.insertCell(), results = row.insertCell(), state = row.insertCell(), match = row.insertCell();
         bot.textContent = batch.bot_name; detail(bot, I18n.t(batch.game)); detail(bot, batch.bot_id);
         if (batch.opponent_id) {
-          detail(bot, I18n.t('vs {0}', batch.opponent_name)); detail(bot, batch.opponent_id);
+          detail(bot, batch.opponent_name); detail(bot, batch.opponent_id);
         }
         progress.textContent = `${batch.completed} / ${batch.total}`;
         detail(progress, I18n.t("{0} rated · {1} skipped", batch.rated, batch.skipped));
+        results.textContent = I18n.t('{0} W · {1} L · {2} D', batch.wins, batch.losses, batch.draws);
+        results.title = I18n.t('Results from {0}’s perspective.', batch.bot_name);
+        if (batch.excluded) detail(results, I18n.t('{0} not counted', batch.excluded));
         state.textContent = I18n.t(batch.status); if (batch.error) detail(state, batch.error);
         const id = batch.current_match || batch.last_match;
         if (id) { const link = document.createElement('a'); link.href = I18n.url(`/match/${encodeURIComponent(id)}`); link.textContent = batch.current_match ? I18n.t("Current match") : I18n.t("Last match"); match.append(link); }

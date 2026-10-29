@@ -58,6 +58,7 @@
 #sourceCode.profile-field { font-family: ui-monospace,monospace; font-size: 0.75rem; }
 .profile-field::file-selector-button { padding: 0.3rem 0.5rem; margin-right: 0.6rem; border: 0; border-radius: 0.3rem; color: #475569; background: #e2e8f0; font-size: 0.75rem; }
 .profile-button:focus-visible, .profile-icon-button:focus-visible, .profile-modal-close:focus-visible { outline: 2px solid #93c5fd; outline-offset: 3px; }
+.profile-copy-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @media (max-width: 850px) { .profile-bot-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .profile-header { gap: 1rem; padding: 1.5rem; } }
 @media (max-width: 639px) {
   .profile-page { margin-top: 1rem; }

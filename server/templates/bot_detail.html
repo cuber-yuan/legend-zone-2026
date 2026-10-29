@@ -5,6 +5,7 @@
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='match-table.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='bot-rating.css') }}">
+<script src="{{ url_for('static', filename='clipboard.js') }}" defer></script>
 <style>
   .bot-tab { padding: 1rem 1.25rem; border-bottom: 2px solid transparent; color: #64748b; font-weight: 600; }
   .bot-tab:hover { color: #1d4ed8; background: #f8fafc; }
@@ -64,10 +65,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         </a>
         {% endif %}
-        <button id="copy-bot-id" type="button" class="bot-action" data-bot-id="{{ bot.id }}" title="{{ _('Copy Bot ID') }}" aria-label="{{ _('Copy Bot ID') }}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="copy-bot-id-symbol" d="M9 9h12v12H9zM5 15H3V3h12v2"/></svg>
+        <button id="copy-bot-id" type="button" class="bot-action" data-copy-bot-id data-bot-id="{{ bot.id }}" title="{{ _('Copy Bot ID') }}" aria-label="{{ _('Copy Bot ID') }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="copy-bot-id-symbol" data-copy-symbol d="M9 9h12v12H9zM5 15H3V3h12v2"/></svg>
         </button>
-        <span id="copy-bot-id-status" class="bot-action-status" role="status"></span>
+        <span id="copy-bot-id-status" data-copy-status class="bot-action-status" role="status"></span>
       </div>
   </div>
 
@@ -226,56 +227,14 @@
   document.addEventListener('DOMContentLoaded', function () {
     const button = document.getElementById('copy-code');
     const source = document.getElementById('bot-source');
-    async function copyText(text) {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(text);
-        } else {
-          const ta = document.createElement('textarea');
-          ta.value = text;
-          ta.setAttribute('readonly', '');
-          ta.style.position = 'fixed';
-          ta.style.left = '-9999px';
-          document.body.appendChild(ta);
-          const focused = document.activeElement;
-          try {
-            ta.select();
-            if (!document.execCommand('copy')) throw new Error(I18n.t("copy command rejected"));
-          } finally {
-            ta.remove();
-            focused?.focus({preventScroll: true});
-          }
-        }
-    }
     if (button && source) button.addEventListener('click', async function () {
       try {
-        await copyText(source.textContent);
+        await PlatformClipboard.writeText(source.textContent);
         button.textContent = I18n.t("Copied!");
       } catch {
         button.textContent = I18n.t("Copy failed");
       }
       setTimeout(() => { button.textContent = I18n.t("Copy"); }, 1500);
-    });
-    const idButton = document.getElementById('copy-bot-id');
-    const symbol = document.getElementById('copy-bot-id-symbol');
-    const status = document.getElementById('copy-bot-id-status');
-    const originalPath = symbol.getAttribute('d');
-    let reset;
-    idButton.addEventListener('click', async function () {
-      clearTimeout(reset);
-      try {
-        await copyText(idButton.dataset.botId);
-        symbol.setAttribute('d', 'm5 12 4 4L19 6');
-        status.textContent = I18n.t("Copied!");
-      } catch {
-        symbol.setAttribute('d', originalPath);
-        status.textContent = I18n.t("Copy failed");
-      }
-      idButton.title = status.textContent;
-      reset = setTimeout(() => {
-        symbol.setAttribute('d', originalPath);
-        idButton.title = I18n.t('Copy Bot ID');
-        status.textContent = '';
-      }, 1500);
     });
   });
 </script>
