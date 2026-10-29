@@ -67,10 +67,11 @@
       }
       for (const batch of batches) {
         const row = rows.insertRow(), bot = row.insertCell(), progress = row.insertCell(), results = row.insertCell(), state = row.insertCell(), match = row.insertCell();
-        bot.textContent = batch.bot_name; detail(bot, I18n.t(batch.game)); detail(bot, batch.bot_id);
+        bot.textContent = batch.bot_name; detail(bot, batch.bot_id);
         if (batch.opponent_id) {
           detail(bot, batch.opponent_name); detail(bot, batch.opponent_id);
         }
+        detail(bot, I18n.t(batch.game));
         progress.textContent = `${batch.completed} / ${batch.total}`;
         detail(progress, I18n.t("{0} rated · {1} skipped", batch.rated, batch.skipped));
         results.textContent = I18n.t('{0} W · {1} L · {2} D', batch.wins, batch.losses, batch.draws);
