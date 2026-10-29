@@ -103,7 +103,7 @@
     finally { busy = false; controls(); }
   });
   refresh.addEventListener('click', load);
-  document.getElementById('bot-queue-tab').addEventListener('click', load);
+  document.getElementById('bot-queue-tab').addEventListener('admin-tab-selected', load);
   const timer = setInterval(() => {
     if (!document.hidden && !document.getElementById('bot-queue-panel').hidden) load();
   }, 2000);
@@ -285,14 +285,18 @@
 
 (() => {
   const tabs = Array.from(document.querySelectorAll('.admin-tab'));
-  function select(tab) {
+  if (!tabs.length) return;
+  const storageKey = 'legend-admin-tab';
+  function select(tab, scroll = true) {
     tabs.forEach(item => {
       const selected = item === tab;
       item.setAttribute('aria-selected', String(selected));
       item.tabIndex = selected ? 0 : -1;
       document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
     });
-    tab.scrollIntoView({block: 'nearest', inline: 'nearest'});
+    try { sessionStorage.setItem(storageKey, tab.id); } catch {}
+    if (scroll) tab.scrollIntoView({block: 'nearest', inline: 'nearest'});
+    tab.dispatchEvent(new Event('admin-tab-selected'));
   }
   tabs.forEach((tab, index) => {
     tab.addEventListener('click', () => select(tab));
@@ -308,6 +312,9 @@
       next.focus();
     });
   });
+  let saved;
+  try { saved = sessionStorage.getItem(storageKey); } catch {}
+  select(tabs.find(tab => tab.id === saved) || tabs[0], false);
 })();
 
 (() => {
