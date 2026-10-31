@@ -4,7 +4,7 @@ from .games import GAMES, get_game
 
 MAX_CHAT_HISTORY_HOURS = 8760
 MAX_LADDER_INTERVAL_SECONDS = 604800
-MAX_BOT_STEP_TIMEOUT_MS = 60000
+MAX_BOT_STEP_TIMEOUT_MS = 600000
 
 
 class SiteSettings:
@@ -56,7 +56,7 @@ class SiteSettings:
                 for value in bot_time_limits_ms.values()
             ):
                 raise ValueError(
-                    "Set a time limit for every game: 0.1–60 seconds in 0.1-second increments."
+                    "Set a time limit for every game: 0.1–600 seconds in 0.1-second increments."
                 )
         with self.db.connect(write=True) as conn:
             updated = conn.execute(
